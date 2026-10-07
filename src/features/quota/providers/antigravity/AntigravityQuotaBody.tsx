@@ -5,11 +5,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import type { AntigravityQuotaState, AntigravityQuotaSubscription } from '@/types';
+import type { AntigravityQuotaState } from '@/types';
 import { QuotaMeter } from '../../components/QuotaMeter';
 import { collectQuotaRowInstants, pickUrgentRowId } from '../../resetSchedule';
 import type { QuotaBodyProps } from '../../types';
 import { getNextAntigravityCountdownUpdateDelay } from './countdown';
+import { getAntigravityPlanLabel } from './planLabel';
 
 const formatAntigravityDuration = (t: TFunction, deltaMs: number): string => {
   const totalMinutes = Math.max(1, Math.ceil(deltaMs / 60000));
@@ -90,22 +91,6 @@ const translateAntigravityQuotaDescription = (
     });
   }
   return value;
-};
-
-const getAntigravityPlanLabel = (
-  subscription: AntigravityQuotaSubscription | null | undefined,
-  t: TFunction
-): string | null => {
-  if (!subscription) return null;
-  if (subscription.plan === 'free') return t('antigravity_subscription.plan_free');
-  if (subscription.plan === 'pro') return t('antigravity_subscription.plan_pro');
-  if (subscription.plan === 'ultra') return t('antigravity_subscription.plan_ultra');
-  if (subscription.plan === 'ultra-lite') return t('antigravity_subscription.plan_ultra_lite');
-  return (
-    subscription.tierName ||
-    subscription.tierId ||
-    (subscription.plan === 'unknown' ? t('antigravity_subscription.plan_unknown') : null)
-  );
 };
 
 export function AntigravityQuotaBody({ quota, classes }: QuotaBodyProps<AntigravityQuotaState>) {

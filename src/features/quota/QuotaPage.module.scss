@@ -25,7 +25,7 @@
 
 .tabsRow {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
@@ -140,6 +140,13 @@
       color: var(--text-primary);
     }
   }
+}
+
+/* 视图切换下拉与排序控件同一套安静外观 */
+.view {
+  @extend .sort;
+  min-width: 128px;
+  margin-bottom: 4px;
 }
 
 @media (hover: hover) and (pointer: fine) {

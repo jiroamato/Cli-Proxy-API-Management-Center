@@ -1540,7 +1540,21 @@
     "search_placeholder": "Tìm theo tên file hoặc email",
     "search_empty_title": "Không có tài khoản phù hợp",
     "search_empty_desc": "Hãy thử tên file hoặc email khác, hoặc xóa tìm kiếm.",
-    "search_clear": "Xóa tìm kiếm"
+    "search_clear": "Xóa tìm kiếm",
+    "view_label": "Chế độ xem",
+    "view_ledger": "Sổ cái",
+    "view_cards": "Thẻ",
+    "show_emails": "Hiện email",
+    "hide_emails": "Ẩn email",
+    "summary_aria": "Quota theo nhà cung cấp",
+    "summary_capacity": "trên {{percent}}%",
+    "summary_show": "Hiện",
+    "summary_hide": "Ẩn",
+    "summary_no_windows": "Tải credential để xem các cửa sổ",
+    "ledger_aria": "Sổ cái credential",
+    "reset_none": "Không có lần đặt lại nào đang chờ",
+    "ledger_available": "khả dụng",
+    "ledger_renews": "gia hạn"
   },
   "plugin_management": {
     "title": "Quản lý Plugin",

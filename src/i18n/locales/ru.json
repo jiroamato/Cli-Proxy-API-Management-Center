@@ -1586,7 +1586,21 @@
     "weekday_wed": "Ср",
     "weekday_thu": "Чт",
     "weekday_fri": "Пт",
-    "weekday_sat": "Сб"
+    "weekday_sat": "Сб",
+    "view_label": "Вид",
+    "view_ledger": "Реестр",
+    "view_cards": "Карточки",
+    "show_emails": "Показать email",
+    "hide_emails": "Скрыть email",
+    "summary_aria": "Квоты по провайдерам",
+    "summary_capacity": "из {{percent}}%",
+    "summary_show": "Показать",
+    "summary_hide": "Скрыть",
+    "summary_no_windows": "Загрузите учётные данные, чтобы увидеть окна",
+    "ledger_aria": "Реестр учётных данных",
+    "reset_none": "Сброс не ожидается",
+    "ledger_available": "доступно",
+    "ledger_renews": "продление"
   },
   "plugin_management": {
     "title": "Управление плагинами",

@@ -1583,7 +1583,21 @@
     "weekday_wed": "Wed",
     "weekday_thu": "Thu",
     "weekday_fri": "Fri",
-    "weekday_sat": "Sat"
+    "weekday_sat": "Sat",
+    "view_label": "View",
+    "view_ledger": "Ledger",
+    "view_cards": "Cards",
+    "show_emails": "Show emails",
+    "hide_emails": "Hide emails",
+    "summary_aria": "Quota by provider",
+    "summary_capacity": "of {{percent}}%",
+    "summary_show": "Show",
+    "summary_hide": "Hide",
+    "summary_no_windows": "Load a credential to see its windows",
+    "ledger_aria": "Credential ledger",
+    "reset_none": "No reset pending",
+    "ledger_available": "available",
+    "ledger_renews": "renews"
   },
   "plugin_management": {
     "title": "Plugin Management",

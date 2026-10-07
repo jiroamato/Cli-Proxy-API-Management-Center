@@ -1,0 +1,259 @@
+@use '../../../styles/mixins' as *;
+
+/* ============================================================
+ * Provider summary strip: tiles separated by hairlines (the strip's
+ * background shows through 1px gaps, so wrapped rows get rules too).
+ * ============================================================ */
+
+.strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--border-color);
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px 18px;
+  background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+}
+
+/* ---------- head ---------- */
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.iconWrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg-tertiary) 60%, transparent);
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  display: block;
+}
+
+.iconFallback {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  @include text-ellipsis;
+}
+
+.count {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+/* ---------- headline window ---------- */
+
+.headline {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  @include text-ellipsis;
+}
+
+.value {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.valueNumber {
+  font-size: 30px;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.valueCapacity {
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+/* ---------- segmented bar: one segment per credential ---------- */
+
+.segments {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+
+.segment {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 6px;
+  border-radius: $radius-full;
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  overflow: hidden;
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  border-radius: $radius-full;
+  transition: width 360ms var(--ease-out-strong, ease);
+}
+
+.fillHigh {
+  background: var(--viz-success);
+}
+
+.fillMedium {
+  background: var(--quota-medium-color);
+}
+
+.fillLow {
+  background: var(--viz-failure);
+}
+
+/* ---------- reset line ---------- */
+
+.reset,
+.resetMuted {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.resetRelative {
+  color: var(--text-secondary);
+}
+
+.resetDot {
+  color: var(--text-quaternary);
+}
+
+/* ---------- secondary windows (collapsed) ---------- */
+
+.secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+}
+
+.secondaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.secondaryRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.secondaryLabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  @include text-ellipsis;
+}
+
+.secondaryValue {
+  font-size: 14px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.toggle {
+  @include button-reset;
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .toggle:hover {
+    color: var(--text-primary);
+  }
+}
+
+.secondaryDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+@include mobile {
+  .tile {
+    padding: 14px 16px;
+  }
+
+  .valueNumber {
+    font-size: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transition: none;
+  }
+}

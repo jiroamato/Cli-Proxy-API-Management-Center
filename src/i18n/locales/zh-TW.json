@@ -1607,7 +1607,21 @@
     "weekday_wed": "三",
     "weekday_thu": "四",
     "weekday_fri": "五",
-    "weekday_sat": "六"
+    "weekday_sat": "六",
+    "view_label": "檢視",
+    "view_ledger": "帳本",
+    "view_cards": "卡片",
+    "show_emails": "顯示信箱",
+    "hide_emails": "隱藏信箱",
+    "summary_aria": "依供應商彙總的額度",
+    "summary_capacity": "/ {{percent}}%",
+    "summary_show": "展開",
+    "summary_hide": "收起",
+    "summary_no_windows": "載入憑證後顯示額度視窗",
+    "ledger_aria": "憑證帳本",
+    "reset_none": "暫無待重置",
+    "ledger_available": "可用",
+    "ledger_renews": "續訂"
   },
   "plugin_management": {
     "title": "插件管理",
