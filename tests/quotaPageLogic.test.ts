@@ -6,6 +6,8 @@ import {
   classifyQuotaFiles,
   filterEntriesByTab,
   filterEntriesBySearch,
+  getQuotaProviderKey,
+  groupQuotaEntriesByProvider,
   isQuotaRefreshDisabled,
   paginate,
   resolveQuotaProviderType,
@@ -44,6 +46,14 @@ describe('resolveQuotaProviderType', () => {
     expect(resolveQuotaProviderType(file('a', 'antigravity'))).toBe('antigravity');
     expect(resolveQuotaProviderType(file('a', 'gemini'))).toBeNull();
     expect(resolveQuotaProviderType(file('a', 'claude', { disabled: true }))).toBeNull();
+    expect(
+      resolveQuotaProviderType(
+        file('kiro-a.json', 'kiro', { supportsQuota: true, quotaProvider: 'kiro', authIndex: '1' })
+      )
+    ).toBe('plugin');
+    expect(resolveQuotaProviderType(file('kiro-probe.json', 'kiro', { supportsQuota: true }))).toBe(
+      'plugin'
+    );
   });
 });
 
@@ -72,6 +82,7 @@ describe('buildTabCounts', () => {
       kimi: 1,
       devin: 0,
       meta: 0,
+      plugin: 0,
     });
   });
 });
@@ -249,5 +260,30 @@ describe('sortQuotaEntries', () => {
     const last = entries[entries.length - 1].file.name;
     const sorted = sortQuotaEntries(entries, 'soonest', resolver({ [last]: 1 }));
     expect(paginate(sorted, 1, 2).pageItems[0].file.name).toBe(last);
+  });
+});
+
+describe('groupQuotaEntriesByProvider', () => {
+  test('splits plugin credentials by quota provider and keeps built-ins whole', () => {
+    const entries: QuotaFileEntry[] = [
+      { type: 'plugin', file: file('alpha-1.json', 'alpha', { quotaProvider: 'alpha' }) },
+      { type: 'codex', file: file('codex-a.json', 'codex') },
+      { type: 'plugin', file: file('beta-1.json', 'beta', { quotaProvider: 'beta' }) },
+      { type: 'plugin', file: file('alpha-2.json', 'alpha', { quotaProvider: 'alpha' }) },
+      { type: 'codex', file: file('codex-b.json', 'codex') },
+    ];
+    const groups = groupQuotaEntriesByProvider(entries);
+    expect(
+      groups.map((group) => [group.type, group.provider, group.entries.map((e) => e.file.name)])
+    ).toEqual([
+      ['codex', 'codex', ['codex-a.json', 'codex-b.json']],
+      ['plugin', 'alpha', ['alpha-1.json', 'alpha-2.json']],
+      ['plugin', 'beta', ['beta-1.json']],
+    ]);
+  });
+
+  test('getQuotaProviderKey falls back to the auth provider for plugin credentials', () => {
+    expect(getQuotaProviderKey({ type: 'plugin', file: file('p.json', 'gamma') })).toBe('gamma');
+    expect(getQuotaProviderKey({ type: 'xai', file: file('grok-a.json', 'grok') })).toBe('xai');
   });
 });

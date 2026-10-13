@@ -9,6 +9,7 @@ export const QUOTA_TAB_ORDER: readonly QuotaProviderType[] = [
   'kimi',
   'devin',
   'meta',
+  'plugin',
 ];
 
 export type QuotaTabId = 'all' | QuotaProviderType;
@@ -23,3 +24,8 @@ export type QuotaSortMode = (typeof QUOTA_SORT_MODES)[number];
 
 /** 与 useRevealGroup 的 GROUP_MAX_TOTAL 一致：卡片级联总预算 360ms。 */
 export const CARD_ENTRANCE_BUDGET_MS = 360;
+
+/** 页面视图：ledger = 按提供商分组的行 + 汇总条；cards = 卡片网格。 */
+export const QUOTA_VIEW_MODES = ['ledger', 'cards'] as const;
+
+export type QuotaViewMode = (typeof QUOTA_VIEW_MODES)[number];
