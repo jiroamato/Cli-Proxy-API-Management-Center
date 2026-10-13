@@ -16,6 +16,7 @@ import type { QuotaCardState } from '../providers';
 import type { QuotaProviderType } from '../providers/types';
 import type { QuotaFileEntry } from '../logic';
 import {
+  buildClaudeResetExtra,
   describeLedgerReset,
   type LedgerCredential,
   type LedgerExtra,
@@ -124,10 +125,12 @@ function ExtraCell({ extra, nowMs }: { extra: LedgerExtra; nowMs: number }) {
   return (
     <div className={styles.extra}>
       <p className={styles.extraTitle}>{extra.title}</p>
-      <p className={styles.extraValue}>
-        <span className={styles.extraNumber}>{extra.value}</span>
-        {extra.valueSuffix && <span className={styles.extraSuffix}>{extra.valueSuffix}</span>}
-      </p>
+      {extra.value !== null && (
+        <p className={styles.extraValue}>
+          <span className={styles.extraNumber}>{extra.value}</span>
+          {extra.valueSuffix && <span className={styles.extraSuffix}>{extra.valueSuffix}</span>}
+        </p>
+      )}
       {extra.lines.map((line) => (
         <p key={line.id} className={styles.extraLine}>
           <span>{line.text}</span>
@@ -170,6 +173,15 @@ function QuotaLedgerRow(props: RowProps) {
       : credential?.planTier === 'premium'
         ? styles.planPremium
         : styles.plan;
+  const claudeResetExtra =
+    entry.type === 'claude' && status === 'success'
+      ? buildClaudeResetExtra(claudeReset.count, claudeReset.grants, t)
+      : null;
+  const extras = credential
+    ? claudeResetExtra
+      ? [...credential.extras, claudeResetExtra]
+      : credential.extras
+    : [];
 
   return (
     <div className={styles.row}>
@@ -222,14 +234,12 @@ function QuotaLedgerRow(props: RowProps) {
             {credential.metrics.map((metric) => (
               <MetricCell key={metric.id} metric={metric} nowMs={nowMs} />
             ))}
-            {credential.extras.map((extra) => (
+            {extras.map((extra) => (
               <ExtraCell key={extra.id} extra={extra} nowMs={nowMs} />
             ))}
-            {!credential.message &&
-              credential.metrics.length === 0 &&
-              credential.extras.length === 0 && (
-                <p className={styles.message}>{t(`${adapter.i18nPrefix}.empty_windows`)}</p>
-              )}
+            {!credential.message && credential.metrics.length === 0 && extras.length === 0 && (
+              <p className={styles.message}>{t(`${adapter.i18nPrefix}.empty_windows`)}</p>
+            )}
           </>
         ) : (
           <p className={styles.message}>{t(`${adapter.i18nPrefix}.idle`)}</p>

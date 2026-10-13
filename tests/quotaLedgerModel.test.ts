@@ -1,7 +1,15 @@
 import { describe, expect, test } from 'bun:test';
 import type { TFunction } from 'i18next';
-import type { ClaudeQuotaState, CodexQuotaState, KimiQuotaState, XaiQuotaState } from '@/types';
+import type {
+  ClaudeQuotaState,
+  CodexQuotaState,
+  KimiQuotaState,
+  PluginQuotaState,
+  XaiQuotaState,
+} from '@/types';
+import type { AnthropicResetGrant } from '@/services/api/claudeResetGrants';
 import {
+  buildClaudeResetExtra,
   buildLedgerCredential,
   buildProviderSummary,
   describeLedgerReset,
@@ -162,6 +170,105 @@ describe('buildLedgerCredential', () => {
     expect(result?.metrics[0].remainingPercent).toBeNull();
     expect(result?.extras[0].title).toBe('xai_quota.monthly_credits');
     expect(result?.extras[0].lines[0].text).toContain('xai_quota.pay_as_you_go_disabled');
+  });
+
+  test('xAI: product usage is a text breakdown of the shared weekly pool, not extra meters', () => {
+    const quota: XaiQuotaState = {
+      status: 'success',
+      billing: {
+        mode: 'billing',
+        periodType: 'weekly',
+        usagePercent: 16,
+        periodEnd: '2026-09-17T17:29:00Z',
+        productUsage: [
+          { product: 'GrokBuild', usagePercent: 14 },
+          { product: 'GrokChat', usagePercent: null },
+        ],
+        monthlyLimitCents: null,
+        usedCents: null,
+        includedUsedCents: null,
+        onDemandCapCents: 0,
+        onDemandUsedCents: 0,
+        onDemandUsedPercent: null,
+        usedPercent: 16,
+        resetAtMs: Date.parse('2026-09-17T17:29:00Z'),
+        periodHours: 168,
+        billingPeriodEnd: null,
+      },
+    };
+    const result = buildLedgerCredential('xai', quota, t);
+    expect(result?.metrics.map((item) => item.id)).toEqual(['xai:weekly']);
+    expect(result?.metrics[0].remainingPercent).toBe(84);
+    const breakdown = result?.extras.find((extra) => extra.id === 'xai:usage-breakdown');
+    expect(breakdown?.title).toBe('xai_quota.usage_breakdown');
+    expect(breakdown?.value).toBeNull();
+    expect(breakdown?.lines.map((line) => line.text)).toEqual([
+      'xai_quota.product_usage: 14%',
+      'xai_quota.product_usage: xai_quota.usage_unavailable',
+    ]);
+  });
+
+  test('plugin: a successful load keeps plan, summary values and bucket windows', () => {
+    const quota: PluginQuotaState = {
+      status: 'success',
+      subscription: { plan: 'pro', tierName: 'Pro Max', tierId: null },
+      summary: [{ key: 'balance', label: 'Balance', value: 12.5 }],
+      groups: [
+        {
+          id: 'daily',
+          label: 'Daily',
+          buckets: [
+            {
+              id: 'requests',
+              label: 'Requests',
+              remainingFraction: 0.4,
+              resetTime: '2026-09-12T00:00:00Z',
+            },
+          ],
+        },
+      ],
+    };
+    const result = buildLedgerCredential('plugin', quota, t);
+    expect(result?.plan).toBe('Pro Max');
+    expect(result?.metrics).toHaveLength(1);
+    expect(result?.metrics[0].id).toBe('daily:requests');
+    expect(result?.metrics[0].remainingPercent).toBe(40);
+    expect(result?.metrics[0].resetAtMs).toBe(Date.parse('2026-09-12T00:00:00Z'));
+    expect(result?.extras.map((extra) => [extra.title, extra.value])).toEqual([
+      ['Balance', '12.5'],
+    ]);
+  });
+
+  test('Claude reset grants: count plus one expiring line per grant with resets left', () => {
+    const grant = (overrides: Partial<AnthropicResetGrant> & { id: string }) =>
+      ({
+        label: '',
+        resetsTotal: 2,
+        resetsLeft: 1,
+        startsAt: null,
+        endsAt: null,
+        clears: [],
+        paused: false,
+        usableNow: true,
+        useRequiresLimit: false,
+        ...overrides,
+      }) as AnthropicResetGrant;
+    const extra = buildClaudeResetExtra(
+      3,
+      [
+        grant({ id: 'late', resetsLeft: 2, endsAt: '2026-10-20T00:00:00Z' }),
+        grant({ id: 'spent', resetsLeft: 0, endsAt: '2026-09-20T00:00:00Z' }),
+        grant({ id: 'soon', label: 'Promo', endsAt: '2026-09-30T00:00:00Z' }),
+      ],
+      t
+    );
+    expect(extra?.title).toBe('claude_reset.remaining');
+    expect(extra?.value).toBe('3');
+    expect(extra?.lines.map((line) => line.id)).toEqual(['soon', 'late']);
+    expect(extra?.lines[0].text).toBe('Promo · claude_reset.count');
+    expect(extra?.lines[1].text).toBe('claude_reset.grant_number:2 · claude_reset.count');
+    expect(extra?.lines[0].atMs).toBe(Date.parse('2026-09-30T00:00:00Z'));
+    expect(buildClaudeResetExtra(null, [], t)).toBeNull();
   });
 
   test('Kimi: remaining is derived from used/limit', () => {

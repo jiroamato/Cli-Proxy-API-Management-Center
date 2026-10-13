@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import type { PluginQuotaMetric, PluginQuotaState } from '@/types';
+import type { PluginQuotaState } from '@/types';
 import { QuotaMeter } from '../../components/QuotaMeter';
 import type { QuotaBodyProps } from '../../types';
+import { formatPluginMetric, getPluginPlanLabel } from './format';
 
 const formatReset = (value: string | undefined): string => {
   if (!value) return '-';
@@ -9,17 +10,9 @@ const formatReset = (value: string | undefined): string => {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
 };
 
-const formatMetric = (metric: PluginQuotaMetric): string => {
-  const value =
-    metric.format === 'currency' && metric.currency
-      ? new Intl.NumberFormat(undefined, { style: 'currency', currency: metric.currency }).format(metric.value)
-      : new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(metric.value);
-  return metric.unit ? `${value} ${metric.unit}` : value;
-};
-
 export function PluginQuotaBody({ quota, classes }: QuotaBodyProps<PluginQuotaState>) {
   const { t } = useTranslation();
-  const plan = quota.subscription?.tierName || quota.subscription?.plan || quota.subscription?.tierId;
+  const plan = getPluginPlanLabel(quota);
 
   return (
     <>
@@ -34,7 +27,7 @@ export function PluginQuotaBody({ quota, classes }: QuotaBodyProps<PluginQuotaSt
           {quota.summary.map((metric) => (
             <span key={metric.key} className={classes.codexPlanItem}>
               <span className={classes.codexPlanLabel}>{metric.label}</span>
-              <span className={classes.codexPlanValue}>{formatMetric(metric)}</span>
+              <span className={classes.codexPlanValue}>{formatPluginMetric(metric)}</span>
             </span>
           ))}
         </div>

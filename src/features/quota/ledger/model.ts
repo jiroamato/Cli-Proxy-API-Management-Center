@@ -16,8 +16,10 @@ import type {
   DevinQuotaState,
   KimiQuotaState,
   MetaQuotaState,
+  PluginQuotaState,
   XaiQuotaState,
 } from '@/types';
+import type { AnthropicResetGrant } from '@/services/api/claudeResetGrants';
 import {
   formatInstantShort,
   formatRelativeInstant,
@@ -32,6 +34,7 @@ import {
   isAntigravityPremiumPlan,
 } from '../providers/antigravity/planLabel';
 import { getCodexPlanLabel } from '../providers/codex/planLabel';
+import { formatPluginMetric, getPluginPlanLabel } from '../providers/plugin/format';
 import { resolveXaiPlanLabel, resolveXaiPlanTier } from '../providers/xai/planLabel';
 import { XAI_WEEKLY_ROW_ID, resetCreditRowId } from '../resetSchedule';
 
@@ -57,11 +60,14 @@ export interface LedgerExtraLine {
   atMs: number | null;
 }
 
-/** Provider-specific block beside the metric columns (Codex manual resets, xAI credits). */
+/**
+ * Provider-specific block beside the metric columns (Codex manual resets, xAI
+ * credits). `value` is null for text-only blocks such as the xAI usage breakdown.
+ */
 export interface LedgerExtra {
   id: string;
   title: string;
-  value: string;
+  value: string | null;
   valueSuffix: string | null;
   lines: LedgerExtraLine[];
 }
@@ -225,16 +231,6 @@ const buildXai = (quota: XaiQuotaState, t: TFunction): LedgerCredential | null =
       periodHours: billing.periodHours ?? 168,
     });
   }
-  billing.productUsage.forEach((item) => {
-    metrics.push({
-      id: `xai:product:${item.product}`,
-      label: t('xai_quota.product_usage', { product: item.product }),
-      remainingPercent: remainingFromUsed(item.usagePercent),
-      resetAtMs: usableMs(billing.resetAtMs),
-      resetLabel: null,
-      periodHours: billing.periodHours ?? 168,
-    });
-  });
   const onDemandCap = billing.onDemandCapCents ?? 0;
   if (onDemandCap > 0) {
     metrics.push({
@@ -248,6 +244,25 @@ const buildXai = (quota: XaiQuotaState, t: TFunction): LedgerCredential | null =
   }
 
   const extras: LedgerExtra[] = [];
+  // Products draw from the one shared weekly pool, so their usage is a text
+  // breakdown of that pool, not separate remaining meters.
+  if (billing.productUsage.length > 0) {
+    extras.push({
+      id: 'xai:usage-breakdown',
+      title: t('xai_quota.usage_breakdown'),
+      value: null,
+      valueSuffix: null,
+      lines: billing.productUsage.map((item) => ({
+        id: `xai:product:${item.product}`,
+        text: `${t('xai_quota.product_usage', { product: item.product })}: ${
+          item.usagePercent === null
+            ? t('xai_quota.usage_unavailable')
+            : `${Math.round(clampPercent(item.usagePercent))}%`
+        }`,
+        atMs: null,
+      })),
+    });
+  }
   const hasMonthlyData =
     (billing.monthlyLimitCents !== null ||
       billing.usedCents !== null ||
@@ -334,6 +349,32 @@ const buildAntigravity = (quota: AntigravityQuotaState, t: TFunction): LedgerCre
   ),
 });
 
+const buildPlugin = (quota: PluginQuotaState): LedgerCredential => ({
+  plan: getPluginPlanLabel(quota),
+  planTier: 'standard',
+  renewsAtMs: null,
+  message: null,
+  extras: (quota.summary ?? []).map((metric) => ({
+    id: `plugin:summary:${metric.key}`,
+    title: metric.label,
+    value: formatPluginMetric(metric),
+    valueSuffix: null,
+    lines: [],
+  })),
+  metrics: (quota.groups ?? []).flatMap((group) =>
+    group.buckets.map((bucket) => ({
+      id: `${group.id}:${bucket.id}`,
+      label: group.label ? `${group.label} · ${bucket.label}` : bucket.label,
+      remainingPercent: Number.isFinite(bucket.remainingFraction)
+        ? clampPercent(bucket.remainingFraction * 100)
+        : null,
+      resetAtMs: usableMs(bucket.resetAtMs) ?? parseIsoToMs(bucket.resetTime),
+      resetLabel: null,
+      periodHours: bucket.periodHours ?? null,
+    }))
+  ),
+});
+
 const buildDevin = (quota: DevinQuotaState, t: TFunction): LedgerCredential => ({
   plan: quota.plan ?? null,
   planTier: 'standard',
@@ -397,9 +438,41 @@ export function buildLedgerCredential(
       return buildDevin(quota as DevinQuotaState, t);
     case 'meta':
       return buildMeta(quota as MetaQuotaState, t);
+    case 'plugin':
+      return buildPlugin(quota as PluginQuotaState);
     default:
       return null;
   }
+}
+
+/**
+ * Claude's banked manual resets, shaped like Codex's manual-reset block. The
+ * grants come from a separate request owned by the row, not from the quota
+ * state, so the row appends this block itself. Null when nothing is known.
+ */
+export function buildClaudeResetExtra(
+  count: number | null,
+  grants: readonly AnthropicResetGrant[],
+  t: TFunction
+): LedgerExtra | null {
+  const remaining = grants
+    .filter((grant) => grant.resetsLeft > 0)
+    .sort((a, b) => (parseIsoToMs(a.endsAt) ?? Infinity) - (parseIsoToMs(b.endsAt) ?? Infinity));
+  if (count === null && remaining.length === 0) return null;
+  return {
+    id: 'claude:manual-resets',
+    title: t('claude_reset.remaining'),
+    value: String(count ?? '--'),
+    valueSuffix: t('quota_management.ledger_available'),
+    lines: remaining.map((grant, index) => ({
+      id: grant.id,
+      text: `${grant.label || t('claude_reset.grant_number', { index: index + 1 })} · ${t(
+        'claude_reset.count',
+        { left: grant.resetsLeft, total: grant.resetsTotal }
+      )}`,
+      atMs: parseIsoToMs(grant.endsAt),
+    })),
+  };
 }
 
 /* ---------- Reset labels ---------- */
