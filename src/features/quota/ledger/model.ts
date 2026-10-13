@@ -416,6 +416,18 @@ const buildMeta = (quota: MetaQuotaState, t: TFunction): LedgerCredential | null
   };
 };
 
+/** Copy for a successful load with nothing to show; providers never agreed on one key. */
+export const LEDGER_EMPTY_MESSAGE_KEYS: Record<QuotaProviderType, string> = {
+  claude: 'claude_quota.empty_windows',
+  codex: 'codex_quota.empty_windows',
+  xai: 'xai_quota.empty_data',
+  kimi: 'kimi_quota.empty_data',
+  antigravity: 'antigravity_quota.empty_models',
+  devin: 'devin_quota.empty_data',
+  meta: 'meta_quota.empty_data',
+  plugin: 'plugin_quota.empty_data',
+};
+
 /** Null for anything but a successful load; the row renders its status instead. */
 export function buildLedgerCredential(
   type: QuotaProviderType,
@@ -540,6 +552,8 @@ export interface SummaryMetric {
 
 export interface ProviderSummary {
   type: QuotaProviderType;
+  /** Icon/label key; differs from `type` only for plugin quota providers. */
+  provider: string;
   count: number;
   loadedCount: number;
   headline: SummaryMetric | null;
@@ -562,7 +576,8 @@ const isSummaryWindow = (metric: LedgerMetric): boolean =>
  */
 export function buildProviderSummary(
   type: QuotaProviderType,
-  credentials: ReadonlyArray<LedgerCredential | null>
+  credentials: ReadonlyArray<LedgerCredential | null>,
+  provider: string = type
 ): ProviderSummary {
   const count = credentials.length;
   const loaded = credentials.filter((credential): credential is LedgerCredential =>
@@ -605,6 +620,7 @@ export function buildProviderSummary(
 
   return {
     type,
+    provider,
     count,
     loadedCount: loaded.length,
     headline: metrics[0] ?? null,

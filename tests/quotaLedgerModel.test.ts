@@ -8,7 +8,9 @@ import type {
   XaiQuotaState,
 } from '@/types';
 import type { AnthropicResetGrant } from '@/services/api/claudeResetGrants';
+import en from '@/i18n/locales/en.json';
 import {
+  LEDGER_EMPTY_MESSAGE_KEYS,
   buildClaudeResetExtra,
   buildLedgerCredential,
   buildProviderSummary,
@@ -336,5 +338,28 @@ describe('buildProviderSummary', () => {
     const summary = buildProviderSummary('codex', [null, null]);
     expect(summary.headline).toBeNull();
     expect(summary.count).toBe(2);
+  });
+});
+
+describe('ledger empty-state copy', () => {
+  test('every provider points at a key that exists', () => {
+    const lookup = (key: string): unknown =>
+      key
+        .split('.')
+        .reduce<unknown>(
+          (node, part) =>
+            node && typeof node === 'object' ? (node as Record<string, unknown>)[part] : undefined,
+          en
+        );
+    Object.values(LEDGER_EMPTY_MESSAGE_KEYS).forEach((key) => {
+      expect(typeof lookup(key)).toBe('string');
+    });
+  });
+});
+
+describe('buildProviderSummary provider identity', () => {
+  test('defaults to the tab type and carries an explicit plugin provider', () => {
+    expect(buildProviderSummary('codex', []).provider).toBe('codex');
+    expect(buildProviderSummary('plugin', [], 'alpha').provider).toBe('alpha');
   });
 });

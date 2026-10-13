@@ -44,6 +44,47 @@ export function canRefreshQuotaAfterList(
   );
 }
 
+/**
+ * Provider an entry's quota actually comes from. Plugin credentials share the
+ * `plugin` tab but each reports its own quota provider, which picks the icon and
+ * label and keeps unrelated plugins out of each other's summaries.
+ */
+export const getQuotaProviderKey = (entry: QuotaFileEntry): string => {
+  if (entry.type !== 'plugin') return entry.type;
+  const file = entry.file;
+  return String(
+    file.quotaProvider ?? file['quota_provider'] ?? file.provider ?? file.type ?? 'plugin'
+  );
+};
+
+export interface QuotaProviderGroup {
+  type: QuotaProviderType;
+  /** `getQuotaProviderKey` of every entry in the group. */
+  provider: string;
+  entries: QuotaFileEntry[];
+}
+
+/** Group entries by QUOTA_TAB_ORDER, then by quota provider; entry order is preserved. */
+export function groupQuotaEntriesByProvider(
+  entries: readonly QuotaFileEntry[]
+): QuotaProviderGroup[] {
+  const groups: QuotaProviderGroup[] = [];
+  QUOTA_TAB_ORDER.forEach((type) => {
+    const byProvider = new Map<string, QuotaFileEntry[]>();
+    entries.forEach((entry) => {
+      if (entry.type !== type) return;
+      const provider = getQuotaProviderKey(entry);
+      const bucket = byProvider.get(provider);
+      if (bucket) bucket.push(entry);
+      else byProvider.set(provider, [entry]);
+    });
+    byProvider.forEach((providerEntries, provider) =>
+      groups.push({ type, provider, entries: providerEntries })
+    );
+  });
+  return groups;
+}
+
 export const resolveQuotaProviderType = (file: AuthFileItem): QuotaProviderType | null =>
   PLUGIN_CONFIG.filterFn(file)
     ? 'plugin'

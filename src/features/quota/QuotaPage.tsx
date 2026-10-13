@@ -47,6 +47,7 @@ import {
   classifyQuotaFiles,
   filterEntriesByTab,
   filterEntriesBySearch,
+  groupQuotaEntriesByProvider,
   paginate,
   sortQuotaEntries,
   type QuotaFileEntry,
@@ -308,21 +309,14 @@ export function QuotaPage() {
   // 汇总条覆盖当前 tab 的全部凭证（不受分页影响）；未加载的凭证贡献空段。
   const summaries = useMemo<ProviderSummary[]>(
     () =>
-      QUOTA_TAB_ORDER.map((type) =>
-        buildProviderSummary(
-          type,
-          tabEntries.filter((entry) => entry.type === type).map(credentialFor)
-        )
+      groupQuotaEntriesByProvider(tabEntries).map((group) =>
+        buildProviderSummary(group.type, group.entries.map(credentialFor), group.provider)
       ),
     [tabEntries, credentialFor]
   );
 
   const ledgerGroups = useMemo<QuotaLedgerGroup[]>(
-    () =>
-      QUOTA_TAB_ORDER.map((type) => ({
-        type,
-        entries: pageItems.filter((entry) => entry.type === type),
-      })).filter((group) => group.entries.length > 0),
+    () => groupQuotaEntriesByProvider(pageItems),
     [pageItems]
   );
 

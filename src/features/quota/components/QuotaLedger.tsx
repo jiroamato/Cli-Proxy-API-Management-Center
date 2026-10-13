@@ -13,9 +13,9 @@ import type { ResolvedTheme } from '@/types';
 import { useNow } from '@/hooks/useNow';
 import { getTypeLabel } from '@/features/authFiles/constants';
 import type { QuotaCardState } from '../providers';
-import type { QuotaProviderType } from '../providers/types';
-import type { QuotaFileEntry } from '../logic';
+import type { QuotaFileEntry, QuotaProviderGroup } from '../logic';
 import {
+  LEDGER_EMPTY_MESSAGE_KEYS,
   buildClaudeResetExtra,
   describeLedgerReset,
   type LedgerCredential,
@@ -27,10 +27,7 @@ import { QuotaEntryActions } from './QuotaEntryActions';
 import { QUOTA_PROGRESS_HIGH_THRESHOLD, QUOTA_PROGRESS_MEDIUM_THRESHOLD } from './QuotaMeter';
 import styles from './QuotaLedger.module.scss';
 
-export interface QuotaLedgerGroup {
-  type: QuotaProviderType;
-  entries: QuotaFileEntry[];
-}
+export type QuotaLedgerGroup = QuotaProviderGroup;
 
 export type QuotaLedgerProps = {
   groups: QuotaLedgerGroup[];
@@ -238,7 +235,7 @@ function QuotaLedgerRow(props: RowProps) {
               <ExtraCell key={extra.id} extra={extra} nowMs={nowMs} />
             ))}
             {!credential.message && credential.metrics.length === 0 && extras.length === 0 && (
-              <p className={styles.message}>{t(`${adapter.i18nPrefix}.empty_windows`)}</p>
+              <p className={styles.message}>{t(LEDGER_EMPTY_MESSAGE_KEYS[entry.type])}</p>
             )}
           </>
         ) : (
@@ -281,9 +278,9 @@ export function QuotaLedger(props: QuotaLedgerProps) {
   return (
     <div className={styles.ledger} role="list" aria-label={t('quota_management.ledger_aria')}>
       {groups.map((group) => (
-        <section key={group.type} className={styles.group}>
+        <section key={`${group.type}:${group.provider}`} className={styles.group}>
           <h2 className={styles.groupTitle}>
-            <span>{getTypeLabel(t, group.type)}</span>
+            <span>{getTypeLabel(t, group.provider)}</span>
             <span className={styles.groupCount}>{group.entries.length}</span>
           </h2>
           <div className={styles.rows}>

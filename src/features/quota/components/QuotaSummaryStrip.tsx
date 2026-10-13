@@ -80,8 +80,8 @@ function SummaryTile({
   const { t } = useTranslation();
   const nowMs = useNow();
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
-  const iconSrc = getAuthFileIcon(summary.type, resolvedTheme);
-  const typeLabel = getTypeLabel(t, summary.type);
+  const iconSrc = getAuthFileIcon(summary.provider, resolvedTheme);
+  const typeLabel = getTypeLabel(t, summary.provider);
   const headline = summary.headline;
   const capacity = summary.count * 100;
 
@@ -99,7 +99,7 @@ function SummaryTile({
         <span
           className={styles.iconWrap}
           style={
-            isThemeSurfaceIconProvider(summary.type)
+            isThemeSurfaceIconProvider(summary.provider)
               ? { background: getThemeSurfaceIconBackground(resolvedTheme) }
               : undefined
           }
@@ -176,7 +176,11 @@ export function QuotaSummaryStrip({ summaries, resolvedTheme }: QuotaSummaryStri
   return (
     <section className={styles.strip} aria-label={t('quota_management.summary_aria')}>
       {visible.map((summary) => (
-        <SummaryTile key={summary.type} summary={summary} resolvedTheme={resolvedTheme} />
+        <SummaryTile
+          key={`${summary.type}:${summary.provider}`}
+          summary={summary}
+          resolvedTheme={resolvedTheme}
+        />
       ))}
     </section>
   );

@@ -20,7 +20,7 @@ import {
 } from '@/features/authFiles/constants';
 import { bindQuotaClasses } from '../types';
 import type { QuotaCardState } from '../providers';
-import type { QuotaFileEntry } from '../logic';
+import { getQuotaProviderKey, type QuotaFileEntry } from '../logic';
 import { useQuotaEntryActions } from '../hooks/useQuotaEntryActions';
 import { ClaudeResetGrantDetails } from '../providers/claude/ClaudeResetGrantDetails';
 import { QuotaEntryActions } from './QuotaEntryActions';
@@ -68,10 +68,7 @@ export function QuotaCard(props: QuotaCardProps) {
 
   const actions = useQuotaEntryActions(entry, quota, canRefresh, resetting, onRefresh);
   const { adapter, status, loading, claudeReset, errorMessage } = actions;
-  const providerType =
-    entry.type === 'plugin'
-      ? String(file.quotaProvider ?? file['quota_provider'] ?? file.provider ?? file.type ?? 'plugin')
-      : entry.type;
+  const providerType = getQuotaProviderKey(entry);
   const iconSrc = getAuthFileIcon(providerType, resolvedTheme);
   const typeLabel = getTypeLabel(t, providerType);
 
