@@ -1569,7 +1569,8 @@
       "cache_write": "Ghi cache",
       "cache_read": "Đọc cache",
       "output": "Đầu ra",
-      "reasoning": "Suy luận"
+      "reasoning": "Suy luận",
+      "unclassified": "Chưa phân loại"
     },
     "chart": {
       "title_tokens_day": "Token theo ngày",
@@ -1608,6 +1609,7 @@
       "title": "Phân tích",
       "empty": "Chưa có dữ liệu cho chế độ xem này.",
       "others": "{{count}} mục khác",
+      "truncated": "Chỉ hiển thị {{count}} nhóm lớn nhất. Các nhóm nhỏ hơn không được tính vào các tỷ lệ này.",
       "dimension": {
         "project": "Dự án",
         "model": "Model",
@@ -1655,7 +1657,7 @@
       "cache_read": "Đọc cache",
       "add": "Thêm model",
       "remove": "Xóa {{model}}",
-      "invalid": "Nhập giá đầu vào và đầu ra là số không âm."
+      "invalid": "Đặt tên mô hình cho mọi dòng có giá, và nhập giá đầu vào và đầu ra là số không âm."
     }
   },
   "quota_management": {

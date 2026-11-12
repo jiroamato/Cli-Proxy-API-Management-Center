@@ -81,6 +81,13 @@ export function UsageChart({ series, bucket, topModels }: UsageChartProps) {
           color: 'var(--usage-reasoning)',
           valueOf: (point) => point.metrics.reasoningTokens,
         },
+        {
+          // Tokens the upstream reported only as a total, so bars add up to it.
+          id: 'unclassified',
+          label: t('usage.tokens.unclassified'),
+          color: REST_COLOR,
+          valueOf: (point) => point.metrics.unclassifiedTokens,
+        },
       ];
     }
     const named = topModels.slice(0, MODEL_COLORS.length - 1);

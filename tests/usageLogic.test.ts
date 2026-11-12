@@ -269,9 +269,16 @@ describe('buildBreakdownRows', () => {
   test('folds the tail into one remainder row', () => {
     const { rows } = buildBreakdownRows(groups, 'project', 1);
     expect(rows).toHaveLength(2);
+    expect(rows.map((row) => row.remainder)).toEqual([false, true]);
     expect(rows[1].folded).toBe(2);
     expect(rows[1].metrics.totalTokens).toBe(30);
     expect(rows[1].share).toBe(30);
+  });
+
+  test('lists a single group past the limit by name instead of folding it', () => {
+    const { rows } = buildBreakdownRows(groups, 'project', 2);
+    expect(rows.map((row) => row.value)).toEqual(['big', '', 'small']);
+    expect(rows.every((row) => !row.remainder)).toBe(true);
   });
 
   test('handles an empty breakdown', () => {

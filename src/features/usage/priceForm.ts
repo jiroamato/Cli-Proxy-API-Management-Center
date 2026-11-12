@@ -60,9 +60,10 @@ const parsePrice = (text: string): number | undefined | null => {
 };
 
 /**
- * Builds the price overrides from the form. Rows with no model or no prices
- * are skipped; a row with an invalid or half-filled price makes the whole
- * form invalid (null).
+ * Builds the price overrides from the form. Rows with no prices are skipped;
+ * a row with an invalid or half-filled price, or with prices but no model
+ * name, makes the whole form invalid (null) so nothing typed is dropped
+ * silently.
  */
 export function collectModelPrices(
   rows: readonly Pick<PriceRow, 'model' | 'input' | 'output' | 'cacheRead' | 'base'>[]
@@ -74,10 +75,8 @@ export function collectModelPrices(
     const output = parsePrice(row.output);
     const cacheRead = parsePrice(row.cacheRead);
     if (input === null || output === null || cacheRead === null) return null;
-    if (model === '' || (input === undefined && output === undefined && cacheRead === undefined)) {
-      continue;
-    }
-    if (input === undefined || output === undefined) return null;
+    if (input === undefined && output === undefined && cacheRead === undefined) continue;
+    if (model === '' || input === undefined || output === undefined) return null;
     const price: ModelPrice = { ...row.base, input, output };
     if (cacheRead === undefined) delete price.cacheRead;
     else price.cacheRead = cacheRead;

@@ -1612,7 +1612,8 @@
       "cache_write": "Cache write",
       "cache_read": "Cache read",
       "output": "Output",
-      "reasoning": "Reasoning"
+      "reasoning": "Reasoning",
+      "unclassified": "Unclassified"
     },
     "chart": {
       "title_tokens_day": "Tokens per day",
@@ -1651,6 +1652,7 @@
       "title": "Breakdown",
       "empty": "Nothing recorded for this view.",
       "others": "{{count}} others",
+      "truncated": "Showing the {{count}} largest groups. Smaller ones are left out of these shares.",
       "dimension": {
         "project": "Project",
         "model": "Model",
@@ -1698,7 +1700,7 @@
       "cache_read": "Cache read",
       "add": "Add model",
       "remove": "Remove {{model}}",
-      "invalid": "Enter input and output prices as non-negative numbers."
+      "invalid": "Give every priced row a model name, with input and output prices as non-negative numbers."
     }
   },
   "quota_management": {

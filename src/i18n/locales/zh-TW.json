@@ -1639,7 +1639,8 @@
       "cache_write": "快取寫入",
       "cache_read": "快取讀取",
       "output": "輸出",
-      "reasoning": "推理"
+      "reasoning": "推理",
+      "unclassified": "未分類"
     },
     "chart": {
       "title_tokens_day": "每日 Token",
@@ -1678,6 +1679,7 @@
       "title": "明細",
       "empty": "此檢視尚無記錄。",
       "others": "其他 {{count}} 項",
+      "truncated": "僅顯示最大的 {{count}} 個群組，較小的群組未計入這些占比。",
       "dimension": {
         "project": "專案",
         "model": "模型",
@@ -1725,7 +1727,7 @@
       "cache_read": "快取讀取",
       "add": "新增模型",
       "remove": "移除 {{model}}",
-      "invalid": "請將輸入與輸出價格填寫為非負數。"
+      "invalid": "請為每個填寫了價格的列填寫模型名稱，並將輸入與輸出價格填寫為非負數。"
     }
   },
   "quota_management": {

@@ -346,6 +346,8 @@ export interface BreakdownRow {
   share: number;
   /** Number of groups folded into this row (1 unless it is the remainder). */
   folded: number;
+  /** True for the trailing row that sums the groups past the limit. */
+  remainder: boolean;
 }
 
 export interface Breakdown {
@@ -356,7 +358,7 @@ export interface Breakdown {
 
 /**
  * Ranks groups by their share of API-equivalent cost (or of tokens when
- * nothing is priced) and folds everything past `limit` into one trailing
+ * nothing is priced) and folds the groups past `limit` into one trailing
  * remainder row, so the list stays short without hiding volume.
  */
 export function buildBreakdownRows(
@@ -374,16 +376,26 @@ export function buildBreakdownRows(
       byBasisDesc(basis)(a, b) ||
       (a.dimensions[dimension] ?? '').localeCompare(b.dimensions[dimension] ?? '')
   );
-  const rows: BreakdownRow[] = sorted.slice(0, limit).map((group) => ({
+  // A single group past the limit is listed by name: a remainder row would
+  // take the same space and hide which group it is.
+  const shown = sorted.length === limit + 1 ? sorted.length : limit;
+  const rows: BreakdownRow[] = sorted.slice(0, shown).map((group) => ({
     value: group.dimensions[dimension] ?? '',
     metrics: group,
     share: share(group),
     folded: 1,
+    remainder: false,
   }));
-  const rest = sorted.slice(limit);
+  const rest = sorted.slice(shown);
   if (rest.length > 0) {
     const metrics = sumMetrics(rest);
-    rows.push({ value: '', metrics, share: share(metrics), folded: rest.length });
+    rows.push({
+      value: '',
+      metrics,
+      share: share(metrics),
+      folded: rest.length,
+      remainder: true,
+    });
   }
   return { rows, basis };
 }

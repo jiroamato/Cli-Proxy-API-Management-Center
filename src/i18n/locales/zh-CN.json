@@ -1611,7 +1611,8 @@
       "cache_write": "缓存写入",
       "cache_read": "缓存读取",
       "output": "输出",
-      "reasoning": "推理"
+      "reasoning": "推理",
+      "unclassified": "未分类"
     },
     "chart": {
       "title_tokens_day": "每日 Token",
@@ -1650,6 +1651,7 @@
       "title": "明细",
       "empty": "该视图暂无记录。",
       "others": "其他 {{count}} 项",
+      "truncated": "仅显示最大的 {{count}} 个分组，较小的分组未计入这些占比。",
       "dimension": {
         "project": "项目",
         "model": "模型",
@@ -1697,7 +1699,7 @@
       "cache_read": "缓存读取",
       "add": "添加模型",
       "remove": "移除 {{model}}",
-      "invalid": "请将输入和输出价格填写为非负数。"
+      "invalid": "请为每个填写了价格的行填写模型名称，并将输入和输出价格填写为非负数。"
     }
   },
   "quota_management": {

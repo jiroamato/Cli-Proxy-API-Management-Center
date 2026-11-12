@@ -1,10 +1,10 @@
-import { Fragment, useState, type KeyboardEvent } from 'react';
+import { Fragment, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconChevronDown } from '@/components/ui/icons';
 import type { UsageGroup, UsageSpeed } from '@/services/api/usageStats';
 import { providerLabel } from '@/features/dashboard/utils';
 import { formatCompactNumber, formatPercent } from '@/utils/format';
-import { useUsageBreakdown } from '../hooks/useUsageDashboard';
+import { BREAKDOWN_GROUP_LIMIT, useUsageBreakdown } from '../hooks/useUsageDashboard';
 import {
   BREAKDOWN_DIMENSIONS,
   EMPTY_VALUE,
@@ -49,8 +49,14 @@ interface PlanInputProps {
 function PlanInput({ value, label, disabled, onCommit }: PlanInputProps) {
   const initial = value === null ? '' : String(value);
   const [draft, setDraft] = useState(initial);
+  // Escape blurs the field, and that blur must not commit the abandoned draft.
+  const cancelledRef = useRef(false);
 
   const commit = () => {
+    if (cancelledRef.current) {
+      cancelledRef.current = false;
+      return;
+    }
     const trimmed = draft.trim();
     const parsed = trimmed === '' ? 0 : Number(trimmed);
     if (!Number.isFinite(parsed) || parsed < 0) {
@@ -63,6 +69,7 @@ function PlanInput({ value, label, disabled, onCommit }: PlanInputProps) {
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') event.currentTarget.blur();
     if (event.key === 'Escape') {
+      cancelledRef.current = true;
       setDraft(initial);
       event.currentTarget.blur();
     }
@@ -279,7 +286,7 @@ interface BreakdownPanelProps {
 export function BreakdownPanel({ range }: BreakdownPanelProps) {
   const { t, i18n } = useTranslation();
   const [dimension, setDimension] = useState<BreakdownDimension>('project');
-  const { groups, loading, error } = useUsageBreakdown(range, dimension);
+  const { groups, truncated, loading, error } = useUsageBreakdown(range, dimension);
   const { rows, basis } = buildBreakdownRows(groups, dimension, BREAKDOWN_ROW_LIMIT);
   const mono = MONO_DIMENSIONS.has(dimension);
 
@@ -329,7 +336,7 @@ export function BreakdownPanel({ range }: BreakdownPanelProps) {
               </span>
             </div>
             {rows.map((row, index) => {
-              const isRemainder = row.folded > 1;
+              const isRemainder = row.remainder;
               const label = isRemainder
                 ? t('usage.breakdown.others', { count: row.folded })
                 : row.value || t('usage.unknown');
@@ -372,6 +379,11 @@ export function BreakdownPanel({ range }: BreakdownPanelProps) {
             })}
           </div>
         </div>
+      )}
+      {truncated && !error && rows.length > 0 && (
+        <p className={styles.footnote}>
+          {t('usage.breakdown.truncated', { count: BREAKDOWN_GROUP_LIMIT })}
+        </p>
       )}
     </section>
   );

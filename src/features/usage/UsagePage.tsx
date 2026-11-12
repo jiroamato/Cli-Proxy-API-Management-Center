@@ -76,10 +76,10 @@ export function UsagePage() {
   const [showEmails, setShowEmails] = useState(() => readQuotaUiState()?.showEmails ?? false);
   const [pricesOpen, setPricesOpen] = useState(false);
   const [pricesKey, setPricesKey] = useState(0);
-  const [saving, setSaving] = useState(false);
+  const [pendingPlanSaves, setPendingPlanSaves] = useState(0);
   const [enabling, setEnabling] = useState(false);
 
-  const { status, data, error, refreshing, refresh, saveSettings, enableRecording } =
+  const { status, data, error, refreshing, refresh, updateSettings, enableRecording } =
     useUsageDashboard(rangeId);
   useHeaderRefresh(refresh);
 
@@ -111,17 +111,16 @@ export function UsagePage() {
   };
 
   const handleSavePlan = async (provider: string, account: string, monthlyUsd: number) => {
-    if (!data) return;
-    setSaving(true);
+    setPendingPlanSaves((count) => count + 1);
     try {
-      await saveSettings({
-        ...data.settings,
-        accountPlans: withAccountPlan(data.settings.accountPlans, provider, account, monthlyUsd),
-      });
+      await updateSettings((current) => ({
+        ...current,
+        accountPlans: withAccountPlan(current.accountPlans, provider, account, monthlyUsd),
+      }));
     } catch (saveError) {
       showNotification(messageOf(saveError), 'error');
     } finally {
-      setSaving(false);
+      setPendingPlanSaves((count) => count - 1);
     }
   };
 
@@ -349,7 +348,7 @@ export function UsagePage() {
           <AccountValueTable
             rows={view.accounts}
             windowDays={view.windowDays}
-            saving={saving}
+            saving={pendingPlanSaves > 0}
             displayAccount={displayAccount}
             onSavePlan={(provider, account, monthlyUsd) =>
               void handleSavePlan(provider, account, monthlyUsd)
@@ -373,7 +372,7 @@ export function UsagePage() {
           unpricedModels={unpricedModels}
           builtInCount={Object.keys(data.defaultPrices).length}
           onClose={() => setPricesOpen(false)}
-          onSave={saveSettings}
+          onSave={(modelPrices) => updateSettings((current) => ({ ...current, modelPrices }))}
         />
       )}
     </div>

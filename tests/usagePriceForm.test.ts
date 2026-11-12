@@ -30,13 +30,13 @@ describe('initialPriceRows', () => {
 });
 
 describe('collectModelPrices', () => {
-  test('keeps filled rows and skips rows without a model or without prices', () => {
+  test('keeps filled rows and skips rows without prices', () => {
     expect(
       collectModelPrices([
         row('model-a', '1.5', '6', '0.15'),
         row('model-b', '2', '8'),
         row('still-unpriced', '', ''),
-        row('', '1', '2'),
+        row('', '', ''),
       ])
     ).toEqual({
       'model-a': { input: 1.5, output: 6, cacheRead: 0.15 },
@@ -56,6 +56,10 @@ describe('collectModelPrices', () => {
     expect(collectModelPrices([row('m', 'abc', '2')])).toBeNull();
     expect(collectModelPrices([row('m', '1', '')])).toBeNull();
     expect(collectModelPrices([row('m', '', '', '0.1')])).toBeNull();
+  });
+
+  test('rejects prices typed into a row without a model name', () => {
+    expect(collectModelPrices([row('model-a', '1', '2'), row(' ', '1', '2')])).toBeNull();
   });
 
   test('accepts zero as a real price', () => {

@@ -1612,7 +1612,8 @@
       "cache_write": "캐시 쓰기",
       "cache_read": "캐시 읽기",
       "output": "출력",
-      "reasoning": "추론"
+      "reasoning": "추론",
+      "unclassified": "미분류"
     },
     "chart": {
       "title_tokens_day": "일별 토큰",
@@ -1651,6 +1652,7 @@
       "title": "분류",
       "empty": "이 보기에 기록된 내용이 없습니다.",
       "others": "기타 {{count}}개",
+      "truncated": "가장 큰 {{count}}개 그룹만 표시합니다. 더 작은 그룹은 이 비율에서 제외됩니다.",
       "dimension": {
         "project": "프로젝트",
         "model": "모델",
@@ -1698,7 +1700,7 @@
       "cache_read": "캐시 읽기",
       "add": "모델 추가",
       "remove": "{{model}} 삭제",
-      "invalid": "입력 및 출력 가격을 0 이상의 숫자로 입력하세요."
+      "invalid": "가격을 입력한 모든 행에 모델 이름을 적고, 입력 및 출력 가격을 0 이상의 숫자로 입력하세요."
     }
   },
   "quota_management": {

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { IconPlus, IconTrash2 } from '@/components/ui/icons';
 import { Modal } from '@/components/ui/Modal';
-import type { UsageSettings } from '@/services/api/usageStats';
+import type { ModelPrice, UsageSettings } from '@/services/api/usageStats';
 import { collectModelPrices, initialPriceRows, type PriceRow } from '../priceForm';
 import styles from '../usage.module.scss';
 
@@ -13,7 +13,8 @@ interface ModelPricesModalProps {
   unpricedModels: readonly string[];
   builtInCount: number;
   onClose: () => void;
-  onSave: (settings: UsageSettings) => Promise<void>;
+  /** Saves the price overrides; other settings are left as they are. */
+  onSave: (modelPrices: Record<string, ModelPrice>) => Promise<void>;
 }
 
 /** Adds or overrides list prices, mainly for models the built-in table lacks. */
@@ -46,7 +47,7 @@ export function ModelPricesModal(props: ModelPricesModalProps) {
     }
     setSaving(true);
     try {
-      await onSave({ ...settings, modelPrices });
+      await onSave(modelPrices);
       onClose();
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : String(saveError));
