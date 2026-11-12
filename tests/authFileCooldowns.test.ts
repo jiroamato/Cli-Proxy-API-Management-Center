@@ -225,7 +225,10 @@ describe('cooldown section rendering', () => {
 
     const available = render(snapshot, { onReset: () => {} });
     expect(available).toContain(i18n.t('auth_files.cooldown_reset_button'));
-    expect(available).toContain(i18n.t('auth_files.cooldown_reset_hint'));
+    // The hint is rendered into a title attribute, where React escapes
+    // apostrophes. The English hint has one, and the active language depends on
+    // which test file ran before this one, so compare against decoded markup.
+    expect(available.replaceAll('&#x27;', "'")).toContain(i18n.t('auth_files.cooldown_reset_hint'));
     expect(available).not.toContain('disabled=""');
 
     const pending = render(snapshot, { onReset: () => {}, resetting: true });

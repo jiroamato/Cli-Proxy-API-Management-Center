@@ -103,6 +103,7 @@
     "auth_files": "File xác thực",
     "oauth": "Đăng nhập OAuth",
     "quota_management": "Quản lý Quota",
+    "usage": "Mức sử dụng",
     "plugins": "Plugin",
     "plugin_store": "Cửa hàng Plugin",
     "config_management": "Bảng cấu hình",
@@ -123,6 +124,7 @@
     "auth_files": "File xác thực & credential",
     "oauth": "Ủy quyền OAuth",
     "quota_management": "API key & giới hạn",
+    "usage": "Token, chi phí & giá trị",
     "plugins": "Bật/tắt & cấu hình plugin",
     "plugin_store": "Khám phá & cài đặt plugin",
     "logs": "Truy vết yêu cầu",
@@ -1517,6 +1519,146 @@
     "precise_save_incomplete": "Quá trình lưu chính xác chưa hoàn tất; một số thay đổi có thể đã được áp dụng. Bản nháp của bạn được giữ lại. Hãy lưu lại để xem xét các khác biệt còn lại trên máy chủ.",
     "concurrent_list_conflict": "Danh sách trên máy chủ {{path}} đã thay đổi sau mốc cơ sở bản nháp của bạn. Thao tác lưu bị chặn để tránh ghi đè các thay đổi đó. Bản nháp của bạn được giữ lại; hãy ghi lại các chỉnh sửa, sau đó tải lại cấu hình và hợp nhất.",
     "precise_save_recovery_required": "Không thể đọc lại kết quả lưu. Đã tạm dừng chỉnh sửa. Lưu lại để khôi phục mốc cơ sở của bản nháp, hoặc tải lại cấu hình."
+  },
+  "usage": {
+    "title": "Mức sử dụng",
+    "meta_requests": "{{value}} yêu cầu",
+    "meta_tokens": "{{value}} token",
+    "meta_cost": "{{value}} theo giá API",
+    "meta_status": {
+      "loading": "Đang tải mức sử dụng...",
+      "ready": "Không có yêu cầu trong khoảng này",
+      "disabled": "Chưa bật ghi nhận",
+      "error": "Không tải được mức sử dụng"
+    },
+    "range_label": "Khoảng thời gian",
+    "range": {
+      "today": "Hôm nay",
+      "7d": "7 ngày qua",
+      "30d": "30 ngày qua",
+      "month": "Tháng này",
+      "90d": "90 ngày qua"
+    },
+    "unknown": "Không rõ",
+    "error_title": "Không tải được mức sử dụng",
+    "disabled": {
+      "title": "Chưa bật ghi nhận mức sử dụng",
+      "description": "Bật để ghi lại token, chi phí, độ trễ và dự án của từng yêu cầu. Prompt và phản hồi không bao giờ được lưu.",
+      "action": "Bật ghi nhận"
+    },
+    "empty": {
+      "title": "Không có yêu cầu trong khoảng này",
+      "description": "Yêu cầu sẽ xuất hiện tại đây ngay khi đi qua proxy. Hãy thử khoảng thời gian dài hơn."
+    },
+    "summary": {
+      "label": "Tổng quan",
+      "cost": "Chi phí theo giá API",
+      "cost_sub": "{{value}} mỗi ngày",
+      "value": "Giá trị gói đăng ký",
+      "value_sub": "Dùng {{cost}} · trả {{plan}}",
+      "value_empty": "Nhập giá gói bên dưới",
+      "tokens": "Token",
+      "tokens_sub": "Vào {{input}} · ra {{output}}",
+      "cache": "Tỷ lệ trúng cache",
+      "cache_sub": "{{value}} token đọc từ cache",
+      "requests": "Yêu cầu",
+      "requests_sub": "{{value}} thất bại"
+    },
+    "tokens": {
+      "input": "Đầu vào",
+      "cache_write": "Ghi cache",
+      "cache_read": "Đọc cache",
+      "output": "Đầu ra",
+      "reasoning": "Suy luận",
+      "unclassified": "Chưa phân loại"
+    },
+    "chart": {
+      "title_tokens_day": "Token theo ngày",
+      "title_tokens_hour": "Token theo giờ",
+      "title_cost_day": "Chi phí theo giá API mỗi ngày",
+      "title_cost_hour": "Chi phí theo giá API mỗi giờ",
+      "mode_label": "Chỉ số biểu đồ",
+      "mode_tokens": "Token",
+      "mode_cost": "Chi phí",
+      "other_models": "Model khác"
+    },
+    "columns": {
+      "account": "Tài khoản",
+      "requests": "Yêu cầu",
+      "tokens": "Token",
+      "api_cost": "Giá API",
+      "plan": "Gói / tháng",
+      "value": "Giá trị",
+      "share": "Tỷ trọng",
+      "cost_share": "Tỷ trọng chi phí",
+      "token_share": "Tỷ trọng token"
+    },
+    "accounts": {
+      "title": "Giá trị theo tài khoản",
+      "hint": "Mỗi gói đăng ký đã mang lại bao nhiêu theo giá niêm yết API, so với số tiền bạn trả.",
+      "plan_label": "Giá gói hằng tháng của {{account}}",
+      "no_plan": "Chưa có giá gói",
+      "show_models": "Hiện các model của {{account}}",
+      "hide_models": "Ẩn các model của {{account}}",
+      "other_models": "{{count}} model khác",
+      "model_share": "{{value}} chi phí API của tài khoản này",
+      "models_note": "Các dòng model cho biết tỷ trọng của từng model trong chi phí theo giá API của tài khoản.",
+      "footnote": "Giá gói được chia theo {{days}} ngày đã ghi nhận trong khoảng này."
+    },
+    "breakdown": {
+      "title": "Phân tích",
+      "empty": "Chưa có dữ liệu cho chế độ xem này.",
+      "others": "{{count}} mục khác",
+      "truncated": "Chỉ hiển thị {{count}} nhóm lớn nhất. Các nhóm nhỏ hơn không được tính vào các tỷ lệ này.",
+      "dimension": {
+        "project": "Dự án",
+        "model": "Model",
+        "client_key": "Khóa client",
+        "user_agent": "Client",
+        "reasoning_effort": "Suy luận",
+        "service_tier": "Hạng dịch vụ",
+        "session_id": "Phiên"
+      },
+      "hint": {
+        "project": "Lấy từ thư mục làm việc mà agent lập trình báo cáo. Worktree được tính vào repository của nó.",
+        "model": "Model thượng nguồn đã xử lý yêu cầu.",
+        "client_key": "API key client dùng để gọi proxy này, đã che.",
+        "user_agent": "Ứng dụng client, lấy từ user agent.",
+        "reasoning_effort": "Mức suy luận gửi lên thượng nguồn.",
+        "service_tier": "Hạng dịch vụ client yêu cầu.",
+        "session_id": "Các cuộc hội thoại, theo mã phiên."
+      }
+    },
+    "speed": {
+      "title": "Tốc độ",
+      "hint": "Yêu cầu thành công. Trung vị / phân vị 95.",
+      "empty": "Chưa có yêu cầu thành công.",
+      "latency": "Độ trễ",
+      "first_token": "Token đầu tiên",
+      "throughput": "Token ra/giây"
+    },
+    "status": {
+      "title": "Mã trạng thái",
+      "hint": "Mọi lần gọi thượng nguồn, kể cả thử lại.",
+      "code": "Trạng thái"
+    },
+    "unpriced": {
+      "notice": "Các model này chưa có giá niêm yết nên token của chúng không tính vào chi phí: {{models}}",
+      "action": "Thêm giá"
+    },
+    "prices": {
+      "button": "Giá",
+      "title": "Giá model",
+      "intro": "Chi phí dùng giá niêm yết có sẵn cho {{count}} model. Thêm giá cho model còn thiếu hoặc ghi đè giá hiện có. USD cho mỗi 1 triệu token.",
+      "model": "Model",
+      "model_placeholder": "model-name",
+      "input": "Đầu vào",
+      "output": "Đầu ra",
+      "cache_read": "Đọc cache",
+      "add": "Thêm model",
+      "remove": "Xóa {{model}}",
+      "invalid": "Đặt tên mô hình cho mọi dòng có giá, và nhập giá đầu vào và đầu ra là số không âm."
+    }
   },
   "quota_management": {
     "title": "Quản lý Quota",

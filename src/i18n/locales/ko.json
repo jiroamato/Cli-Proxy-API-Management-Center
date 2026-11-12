@@ -103,6 +103,7 @@
     "auth_files": "인증 파일",
     "oauth": "OAuth 로그인",
     "quota_management": "할당량 관리",
+    "usage": "사용량",
     "plugins": "플러그인",
     "plugin_store": "플러그인 스토어",
     "config_management": "설정 패널",
@@ -123,6 +124,7 @@
     "auth_files": "인증 파일 및 자격 증명",
     "oauth": "OAuth 권한 부여",
     "quota_management": "API 키 및 한도",
+    "usage": "토큰, 비용 및 가치",
     "plugins": "플러그인 설정 및 전환",
     "plugin_store": "플러그인 탐색 및 설치",
     "logs": "요청 추적",
@@ -1559,6 +1561,146 @@
         "update": "업데이트",
         "add": "추가"
       }
+    }
+  },
+  "usage": {
+    "title": "사용량",
+    "meta_requests": "요청 {{value}}건",
+    "meta_tokens": "토큰 {{value}}",
+    "meta_cost": "API 가격 기준 {{value}}",
+    "meta_status": {
+      "loading": "사용량을 불러오는 중...",
+      "ready": "이 기간에 요청이 없습니다",
+      "disabled": "기록이 꺼져 있습니다",
+      "error": "사용량을 불러오지 못했습니다"
+    },
+    "range_label": "기간",
+    "range": {
+      "today": "오늘",
+      "7d": "최근 7일",
+      "30d": "최근 30일",
+      "month": "이번 달",
+      "90d": "최근 90일"
+    },
+    "unknown": "알 수 없음",
+    "error_title": "사용량을 불러오지 못했습니다",
+    "disabled": {
+      "title": "사용량 기록이 꺼져 있습니다",
+      "description": "켜면 모든 요청의 토큰, 비용, 지연 시간, 프로젝트를 기록합니다. 프롬프트와 응답은 저장하지 않습니다.",
+      "action": "기록 켜기"
+    },
+    "empty": {
+      "title": "이 기간에 요청이 없습니다",
+      "description": "요청이 프록시를 통과하면 바로 여기에 표시됩니다. 더 긴 기간을 선택해 보세요."
+    },
+    "summary": {
+      "label": "요약",
+      "cost": "API 환산 비용",
+      "cost_sub": "하루 {{value}}",
+      "value": "구독 가치",
+      "value_sub": "사용 {{cost}} · 결제 {{plan}}",
+      "value_empty": "아래에 구독 가격을 입력하세요",
+      "tokens": "토큰",
+      "tokens_sub": "입력 {{input}} · 출력 {{output}}",
+      "cache": "캐시 적중률",
+      "cache_sub": "캐시에서 읽은 토큰 {{value}}",
+      "requests": "요청",
+      "requests_sub": "실패 {{value}}"
+    },
+    "tokens": {
+      "input": "입력",
+      "cache_write": "캐시 쓰기",
+      "cache_read": "캐시 읽기",
+      "output": "출력",
+      "reasoning": "추론",
+      "unclassified": "미분류"
+    },
+    "chart": {
+      "title_tokens_day": "일별 토큰",
+      "title_tokens_hour": "시간별 토큰",
+      "title_cost_day": "일별 API 환산 비용",
+      "title_cost_hour": "시간별 API 환산 비용",
+      "mode_label": "차트 지표",
+      "mode_tokens": "토큰",
+      "mode_cost": "비용",
+      "other_models": "기타 모델"
+    },
+    "columns": {
+      "account": "계정",
+      "requests": "요청",
+      "tokens": "토큰",
+      "api_cost": "API 비용",
+      "plan": "구독 / 월",
+      "value": "가치",
+      "share": "비중",
+      "cost_share": "비용 비중",
+      "token_share": "토큰 비중"
+    },
+    "accounts": {
+      "title": "계정별 가치",
+      "hint": "각 구독이 API 정가 기준으로 제공한 사용량을 구독료와 비교합니다.",
+      "plan_label": "{{account}}의 월 구독 가격",
+      "no_plan": "구독 가격 없음",
+      "show_models": "{{account}}의 모델 보기",
+      "hide_models": "{{account}}의 모델 숨기기",
+      "other_models": "기타 모델 {{count}}개",
+      "model_share": "이 계정 API 비용의 {{value}}",
+      "models_note": "모델 행은 해당 계정의 API 환산 비용에서 각 모델이 차지하는 비중을 보여 줍니다.",
+      "footnote": "구독 가격은 이 기간에 기록된 {{days}}일에 맞춰 환산됩니다."
+    },
+    "breakdown": {
+      "title": "분류",
+      "empty": "이 보기에 기록된 내용이 없습니다.",
+      "others": "기타 {{count}}개",
+      "truncated": "가장 큰 {{count}}개 그룹만 표시합니다. 더 작은 그룹은 이 비율에서 제외됩니다.",
+      "dimension": {
+        "project": "프로젝트",
+        "model": "모델",
+        "client_key": "클라이언트 키",
+        "user_agent": "클라이언트",
+        "reasoning_effort": "추론 강도",
+        "service_tier": "서비스 등급",
+        "session_id": "세션"
+      },
+      "hint": {
+        "project": "코딩 에이전트가 보고한 작업 디렉터리에서 가져옵니다. 워크트리는 해당 저장소로 집계됩니다.",
+        "model": "요청을 처리한 업스트림 모델입니다.",
+        "client_key": "클라이언트가 이 프록시에 접속할 때 사용한 API 키(마스킹됨)입니다.",
+        "user_agent": "User-Agent 기준 클라이언트 애플리케이션입니다.",
+        "reasoning_effort": "업스트림으로 보낸 추론 강도입니다.",
+        "service_tier": "클라이언트가 요청한 서비스 등급입니다.",
+        "session_id": "세션 식별자 기준 대화입니다."
+      }
+    },
+    "speed": {
+      "title": "속도",
+      "hint": "성공한 요청 기준. 중앙값 / 95번째 백분위수.",
+      "empty": "아직 성공한 요청이 없습니다.",
+      "latency": "지연 시간",
+      "first_token": "첫 토큰",
+      "throughput": "출력 토큰/초"
+    },
+    "status": {
+      "title": "상태 코드",
+      "hint": "재시도를 포함한 모든 업스트림 시도입니다.",
+      "code": "상태"
+    },
+    "unpriced": {
+      "notice": "다음 모델은 정가가 없어 토큰이 비용에 포함되지 않습니다: {{models}}",
+      "action": "가격 추가"
+    },
+    "prices": {
+      "button": "가격",
+      "title": "모델 가격",
+      "intro": "비용은 {{count}}개 모델의 내장 정가를 사용합니다. 없는 모델의 가격을 추가하거나 기존 가격을 덮어쓸 수 있습니다. 단위: 100만 토큰당 USD.",
+      "model": "모델",
+      "model_placeholder": "model-name",
+      "input": "입력",
+      "output": "출력",
+      "cache_read": "캐시 읽기",
+      "add": "모델 추가",
+      "remove": "{{model}} 삭제",
+      "invalid": "가격을 입력한 모든 행에 모델 이름을 적고, 입력 및 출력 가격을 0 이상의 숫자로 입력하세요."
     }
   },
   "quota_management": {

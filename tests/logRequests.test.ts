@@ -169,11 +169,12 @@ describe('log request ownership', () => {
 });
 
 describe('logs controller lifecycle wiring', () => {
-  const page = readFileSync(new URL('../src/features/logs/LogsPage.tsx', import.meta.url), 'utf8');
-  const source = readFileSync(
-    new URL('../src/features/logs/hooks/useLogStream.ts', import.meta.url),
-    'utf8'
-  );
+  // Normalize line endings: a Windows checkout may have CRLF, and the
+  // multi-line expectation below is written with LF.
+  const readSource = (path: string): string =>
+    readFileSync(new URL(path, import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+  const page = readSource('../src/features/logs/LogsPage.tsx');
+  const source = readSource('../src/features/logs/hooks/useLogStream.ts');
 
   test('invalidates synchronously on connection identity/config changes and unmount', () => {
     for (const owner of [page, source]) {
