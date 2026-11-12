@@ -117,10 +117,12 @@ describe('provider probe proxy forwarding', () => {
 
   test('base and sponsor forms pass their editable proxy to probe hooks', () => {
     const base = readFileSync('src/features/providers/sheets/forms/BaseProviderForm.tsx', 'utf8');
+    // Normalize line endings: a Windows checkout may have CRLF, and the
+    // multi-line expectation below is written with LF.
     const sponsor = readFileSync(
       'src/features/providers/sheets/forms/SponsorProviderForm.tsx',
       'utf8'
-    );
+    ).replace(/\r\n/g, '\n');
     expect(base.match(/proxyUrl: form\.proxyUrl/g)).toHaveLength(2);
     expect(sponsor).toContain('proxyUrl: entry.proxyUrl,\n    formHeaders: discoveryHeaders');
   });
