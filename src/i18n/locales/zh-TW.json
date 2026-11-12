@@ -103,6 +103,7 @@
     "auth_files": "驗證檔案",
     "oauth": "OAuth 登入",
     "quota_management": "配額管理",
+    "usage": "用量統計",
     "plugins": "插件管理",
     "plugin_store": "插件商店",
     "config_management": "設定面板",
@@ -123,6 +124,7 @@
     "auth_files": "Auth 檔案與憑證",
     "oauth": "OAuth 授權登入",
     "quota_management": "API Key 與限額",
+    "usage": "Token、費用與價值",
     "plugins": "插件啟停與設定",
     "plugin_store": "探索並安裝插件",
     "logs": "請求追蹤與排查",
@@ -1586,6 +1588,144 @@
         "update": "更新",
         "add": "新增"
       }
+    }
+  },
+  "usage": {
+    "title": "用量統計",
+    "meta_requests": "{{value}} 次請求",
+    "meta_tokens": "{{value}} Token",
+    "meta_cost": "依 API 價格 {{value}}",
+    "meta_status": {
+      "loading": "正在載入用量...",
+      "ready": "此時間範圍內沒有請求",
+      "disabled": "尚未開啟記錄",
+      "error": "用量載入失敗"
+    },
+    "range_label": "時間範圍",
+    "range": {
+      "today": "今天",
+      "7d": "最近 7 天",
+      "30d": "最近 30 天",
+      "month": "本月",
+      "90d": "最近 90 天"
+    },
+    "unknown": "未知",
+    "error_title": "用量載入失敗",
+    "disabled": {
+      "title": "用量記錄尚未開啟",
+      "description": "開啟後會記錄每次請求的 Token、費用、延遲與專案。不會儲存提示詞與回應內容。",
+      "action": "開啟記錄"
+    },
+    "empty": {
+      "title": "此時間範圍內沒有請求",
+      "description": "請求經過代理後會立即顯示在這裡。可以嘗試更長的時間範圍。"
+    },
+    "summary": {
+      "label": "總覽",
+      "cost": "API 等價費用",
+      "cost_sub": "每天 {{value}}",
+      "value": "訂閱價值",
+      "value_sub": "用量 {{cost}} · 訂閱 {{plan}}",
+      "value_empty": "請在下方填寫訂閱價格",
+      "tokens": "Token",
+      "tokens_sub": "輸入 {{input}} · 輸出 {{output}}",
+      "cache": "快取命中率",
+      "cache_sub": "{{value}} Token 來自快取",
+      "requests": "請求數",
+      "requests_sub": "失敗 {{value}}"
+    },
+    "tokens": {
+      "input": "輸入",
+      "cache_write": "快取寫入",
+      "cache_read": "快取讀取",
+      "output": "輸出",
+      "reasoning": "推理"
+    },
+    "chart": {
+      "title_tokens_day": "每日 Token",
+      "title_tokens_hour": "每小時 Token",
+      "title_cost_day": "每日 API 等價費用",
+      "title_cost_hour": "每小時 API 等價費用",
+      "mode_label": "圖表指標",
+      "mode_tokens": "Token",
+      "mode_cost": "費用",
+      "other_models": "其他模型"
+    },
+    "columns": {
+      "account": "帳號",
+      "requests": "請求數",
+      "tokens": "Token",
+      "api_cost": "API 費用",
+      "plan": "訂閱 / 月",
+      "value": "價值",
+      "share": "占比",
+      "cost_share": "費用占比",
+      "token_share": "Token 占比"
+    },
+    "accounts": {
+      "title": "各帳號價值",
+      "hint": "每個訂閱依 API 標價實際提供的用量，與訂閱花費的對比。",
+      "plan_label": "{{account}} 的每月訂閱價格",
+      "no_plan": "未填寫訂閱價格",
+      "show_models": "顯示 {{account}} 的模型",
+      "hide_models": "隱藏 {{account}} 的模型",
+      "other_models": "其他 {{count}} 個模型",
+      "model_share": "占此帳號 API 費用的 {{value}}",
+      "models_note": "模型列顯示各模型在此帳號 API 等價費用中的占比。",
+      "footnote": "訂閱價格依此範圍內已記錄的 {{days}} 天折算。"
+    },
+    "breakdown": {
+      "title": "明細",
+      "empty": "此檢視尚無記錄。",
+      "others": "其他 {{count}} 項",
+      "dimension": {
+        "project": "專案",
+        "model": "模型",
+        "client_key": "用戶端金鑰",
+        "user_agent": "用戶端",
+        "reasoning_effort": "推理強度",
+        "service_tier": "服務層級",
+        "session_id": "工作階段"
+      },
+      "hint": {
+        "project": "取自程式代理回報的工作目錄。Worktree 計入所屬儲存庫。",
+        "model": "實際處理請求的上游模型。",
+        "client_key": "用戶端存取本代理所用的 API Key（已遮罩）。",
+        "user_agent": "用戶端應用程式，取自 User-Agent。",
+        "reasoning_effort": "傳送給上游的推理強度。",
+        "service_tier": "用戶端請求的服務層級。",
+        "session_id": "依工作階段識別碼區分的對話。"
+      }
+    },
+    "speed": {
+      "title": "速度",
+      "hint": "僅統計成功請求。中位數 / 95 百分位。",
+      "empty": "尚無成功請求。",
+      "latency": "延遲",
+      "first_token": "首個 Token",
+      "throughput": "輸出 Token/秒"
+    },
+    "status": {
+      "title": "狀態碼",
+      "hint": "包含重試在內的每次上游請求。",
+      "code": "狀態"
+    },
+    "unpriced": {
+      "notice": "以下模型沒有標價，其 Token 未計入費用：{{models}}",
+      "action": "新增價格"
+    },
+    "prices": {
+      "button": "價格",
+      "title": "模型價格",
+      "intro": "費用使用 {{count}} 個模型的內建標價。可以為缺少的模型新增價格，或覆寫既有價格。單位：美元 / 100 萬 Token。",
+      "model": "模型",
+      "model_placeholder": "model-name",
+      "input": "輸入",
+      "output": "輸出",
+      "cache_read": "快取讀取",
+      "add": "新增模型",
+      "remove": "移除 {{model}}",
+      "invalid": "請將輸入與輸出價格填寫為非負數。"
     }
   },
   "quota_management": {

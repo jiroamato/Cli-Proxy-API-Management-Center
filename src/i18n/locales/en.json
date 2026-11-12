@@ -103,6 +103,7 @@
     "auth_files": "Auth Files",
     "oauth": "OAuth Login",
     "quota_management": "Quota Management",
+    "usage": "Usage",
     "plugins": "Plugins",
     "plugin_store": "Plugin Store",
     "config_management": "Config Panel",
@@ -123,6 +124,7 @@
     "auth_files": "Auth files & credentials",
     "oauth": "OAuth authorization",
     "quota_management": "API keys & limits",
+    "usage": "Tokens, cost & value",
     "plugins": "Plugin toggles & config",
     "plugin_store": "Discover & install plugins",
     "logs": "Request tracing",
@@ -1559,6 +1561,144 @@
         "update": "Update",
         "add": "Add"
       }
+    }
+  },
+  "usage": {
+    "title": "Usage",
+    "meta_requests": "{{value}} requests",
+    "meta_tokens": "{{value}} tokens",
+    "meta_cost": "{{value}} at API prices",
+    "meta_status": {
+      "loading": "Loading usage...",
+      "ready": "No requests in this range",
+      "disabled": "Recording is off",
+      "error": "Could not load usage"
+    },
+    "range_label": "Time range",
+    "range": {
+      "today": "Today",
+      "7d": "Last 7 days",
+      "30d": "Last 30 days",
+      "month": "This month",
+      "90d": "Last 90 days"
+    },
+    "unknown": "Unknown",
+    "error_title": "Could not load usage",
+    "disabled": {
+      "title": "Usage recording is off",
+      "description": "Turn it on to record tokens, cost, latency and project for every request. Prompts and responses are never stored.",
+      "action": "Turn on recording"
+    },
+    "empty": {
+      "title": "No requests in this range",
+      "description": "Requests appear here as soon as they pass through the proxy. Try a longer range."
+    },
+    "summary": {
+      "label": "Summary",
+      "cost": "API-equivalent cost",
+      "cost_sub": "{{value}} per day",
+      "value": "Subscription value",
+      "value_sub": "{{cost}} used · {{plan}} paid",
+      "value_empty": "Add plan prices below",
+      "tokens": "Tokens",
+      "tokens_sub": "{{input}} in · {{output}} out",
+      "cache": "Cache hit rate",
+      "cache_sub": "{{value}} tokens read from cache",
+      "requests": "Requests",
+      "requests_sub": "{{value}} failed"
+    },
+    "tokens": {
+      "input": "Input",
+      "cache_write": "Cache write",
+      "cache_read": "Cache read",
+      "output": "Output",
+      "reasoning": "Reasoning"
+    },
+    "chart": {
+      "title_tokens_day": "Tokens per day",
+      "title_tokens_hour": "Tokens per hour",
+      "title_cost_day": "API-equivalent cost per day",
+      "title_cost_hour": "API-equivalent cost per hour",
+      "mode_label": "Chart metric",
+      "mode_tokens": "Tokens",
+      "mode_cost": "Cost",
+      "other_models": "Other models"
+    },
+    "columns": {
+      "account": "Account",
+      "requests": "Requests",
+      "tokens": "Tokens",
+      "api_cost": "API cost",
+      "plan": "Plan / month",
+      "value": "Value",
+      "share": "Share",
+      "cost_share": "Cost share",
+      "token_share": "Token share"
+    },
+    "accounts": {
+      "title": "Value per account",
+      "hint": "What each subscription delivered at API list prices, against what it costs you.",
+      "plan_label": "Monthly plan price for {{account}}",
+      "no_plan": "No plan price",
+      "show_models": "Show models for {{account}}",
+      "hide_models": "Hide models for {{account}}",
+      "other_models": "{{count}} other models",
+      "model_share": "{{value}} of this account's API cost",
+      "models_note": "Model rows show each model's share of that account's API-equivalent cost.",
+      "footnote": "Plan prices are prorated over the {{days}} days recorded in this range."
+    },
+    "breakdown": {
+      "title": "Breakdown",
+      "empty": "Nothing recorded for this view.",
+      "others": "{{count}} others",
+      "dimension": {
+        "project": "Project",
+        "model": "Model",
+        "client_key": "Client key",
+        "user_agent": "Client",
+        "reasoning_effort": "Reasoning",
+        "service_tier": "Service tier",
+        "session_id": "Session"
+      },
+      "hint": {
+        "project": "Taken from the working directory the coding agent reports. Worktrees count toward their repository.",
+        "model": "The upstream model that served the request.",
+        "client_key": "The API key the client used to reach this proxy, masked.",
+        "user_agent": "The client application, from its user agent.",
+        "reasoning_effort": "The reasoning effort sent upstream.",
+        "service_tier": "The service tier the client requested.",
+        "session_id": "Conversations, by session identifier."
+      }
+    },
+    "speed": {
+      "title": "Speed",
+      "hint": "Successful requests. Median / 95th percentile.",
+      "empty": "No successful requests yet.",
+      "latency": "Latency",
+      "first_token": "First token",
+      "throughput": "Output tok/s"
+    },
+    "status": {
+      "title": "Status codes",
+      "hint": "Every upstream attempt, including retries.",
+      "code": "Status"
+    },
+    "unpriced": {
+      "notice": "No list price for these models, so their tokens are not in the cost: {{models}}",
+      "action": "Add prices"
+    },
+    "prices": {
+      "button": "Prices",
+      "title": "Model prices",
+      "intro": "Costs use built-in list prices for {{count}} models. Add a price for a model that is missing, or override one. USD per 1M tokens.",
+      "model": "Model",
+      "model_placeholder": "model-name",
+      "input": "Input",
+      "output": "Output",
+      "cache_read": "Cache read",
+      "add": "Add model",
+      "remove": "Remove {{model}}",
+      "invalid": "Enter input and output prices as non-negative numbers."
     }
   },
   "quota_management": {

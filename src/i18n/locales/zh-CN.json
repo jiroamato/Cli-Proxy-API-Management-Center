@@ -103,6 +103,7 @@
     "auth_files": "认证文件",
     "oauth": "OAuth 登录",
     "quota_management": "配额管理",
+    "usage": "用量统计",
     "plugins": "插件管理",
     "plugin_store": "插件商店",
     "config_management": "配置面板",
@@ -123,6 +124,7 @@
     "auth_files": "Auth 文件与凭证",
     "oauth": "OAuth 授权登录",
     "quota_management": "API Key 与限额",
+    "usage": "Token、费用与价值",
     "plugins": "插件启停与配置",
     "plugin_store": "发现并安装插件",
     "logs": "请求追踪与排查",
@@ -1558,6 +1560,144 @@
         "update": "更新",
         "add": "添加"
       }
+    }
+  },
+  "usage": {
+    "title": "用量统计",
+    "meta_requests": "{{value}} 次请求",
+    "meta_tokens": "{{value}} Token",
+    "meta_cost": "按 API 价格 {{value}}",
+    "meta_status": {
+      "loading": "正在加载用量...",
+      "ready": "该时间范围内没有请求",
+      "disabled": "未开启记录",
+      "error": "用量加载失败"
+    },
+    "range_label": "时间范围",
+    "range": {
+      "today": "今天",
+      "7d": "最近 7 天",
+      "30d": "最近 30 天",
+      "month": "本月",
+      "90d": "最近 90 天"
+    },
+    "unknown": "未知",
+    "error_title": "用量加载失败",
+    "disabled": {
+      "title": "用量记录未开启",
+      "description": "开启后会记录每次请求的 Token、费用、延迟和项目。不会保存提示词和响应内容。",
+      "action": "开启记录"
+    },
+    "empty": {
+      "title": "该时间范围内没有请求",
+      "description": "请求经过代理后会立即显示在这里。可以尝试更长的时间范围。"
+    },
+    "summary": {
+      "label": "概览",
+      "cost": "API 等价费用",
+      "cost_sub": "每天 {{value}}",
+      "value": "订阅价值",
+      "value_sub": "用量 {{cost}} · 订阅 {{plan}}",
+      "value_empty": "请在下方填写订阅价格",
+      "tokens": "Token",
+      "tokens_sub": "输入 {{input}} · 输出 {{output}}",
+      "cache": "缓存命中率",
+      "cache_sub": "{{value}} Token 来自缓存",
+      "requests": "请求数",
+      "requests_sub": "失败 {{value}}"
+    },
+    "tokens": {
+      "input": "输入",
+      "cache_write": "缓存写入",
+      "cache_read": "缓存读取",
+      "output": "输出",
+      "reasoning": "推理"
+    },
+    "chart": {
+      "title_tokens_day": "每日 Token",
+      "title_tokens_hour": "每小时 Token",
+      "title_cost_day": "每日 API 等价费用",
+      "title_cost_hour": "每小时 API 等价费用",
+      "mode_label": "图表指标",
+      "mode_tokens": "Token",
+      "mode_cost": "费用",
+      "other_models": "其他模型"
+    },
+    "columns": {
+      "account": "账号",
+      "requests": "请求数",
+      "tokens": "Token",
+      "api_cost": "API 费用",
+      "plan": "订阅 / 月",
+      "value": "价值",
+      "share": "占比",
+      "cost_share": "费用占比",
+      "token_share": "Token 占比"
+    },
+    "accounts": {
+      "title": "各账号价值",
+      "hint": "每个订阅按 API 标价实际提供的用量，与订阅花费的对比。",
+      "plan_label": "{{account}} 的每月订阅价格",
+      "no_plan": "未填写订阅价格",
+      "show_models": "显示 {{account}} 的模型",
+      "hide_models": "隐藏 {{account}} 的模型",
+      "other_models": "其他 {{count}} 个模型",
+      "model_share": "占该账号 API 费用的 {{value}}",
+      "models_note": "模型行显示各模型在该账号 API 等价费用中的占比。",
+      "footnote": "订阅价格按该范围内已记录的 {{days}} 天折算。"
+    },
+    "breakdown": {
+      "title": "明细",
+      "empty": "该视图暂无记录。",
+      "others": "其他 {{count}} 项",
+      "dimension": {
+        "project": "项目",
+        "model": "模型",
+        "client_key": "客户端密钥",
+        "user_agent": "客户端",
+        "reasoning_effort": "推理强度",
+        "service_tier": "服务层级",
+        "session_id": "会话"
+      },
+      "hint": {
+        "project": "取自编程代理上报的工作目录。Worktree 计入所属仓库。",
+        "model": "实际处理请求的上游模型。",
+        "client_key": "客户端访问本代理所用的 API Key（已脱敏）。",
+        "user_agent": "客户端应用，取自 User-Agent。",
+        "reasoning_effort": "发送给上游的推理强度。",
+        "service_tier": "客户端请求的服务层级。",
+        "session_id": "按会话标识区分的对话。"
+      }
+    },
+    "speed": {
+      "title": "速度",
+      "hint": "仅统计成功请求。中位数 / 95 分位。",
+      "empty": "暂无成功请求。",
+      "latency": "延迟",
+      "first_token": "首个 Token",
+      "throughput": "输出 Token/秒"
+    },
+    "status": {
+      "title": "状态码",
+      "hint": "包含重试在内的每次上游请求。",
+      "code": "状态"
+    },
+    "unpriced": {
+      "notice": "以下模型没有标价，其 Token 未计入费用：{{models}}",
+      "action": "添加价格"
+    },
+    "prices": {
+      "button": "价格",
+      "title": "模型价格",
+      "intro": "费用使用 {{count}} 个模型的内置标价。可以为缺失的模型添加价格，或覆盖已有价格。单位：美元 / 100 万 Token。",
+      "model": "模型",
+      "model_placeholder": "model-name",
+      "input": "输入",
+      "output": "输出",
+      "cache_read": "缓存读取",
+      "add": "添加模型",
+      "remove": "移除 {{model}}",
+      "invalid": "请将输入和输出价格填写为非负数。"
     }
   },
   "quota_management": {

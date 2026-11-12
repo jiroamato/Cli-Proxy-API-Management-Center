@@ -1,0 +1,1038 @@
+@use '../../styles/mixins' as *;
+
+/* ============================================================
+ * Usage dashboard. Same vocabulary as the quota page: tight title,
+ * mono telemetry meta row, ink pill actions, hairline tile strips.
+ * ============================================================ */
+
+.page {
+  /* Categorical chart palette. Mid-tone hues read on both themes. */
+  --usage-c1: #5b7fa6;
+  --usage-c2: #10b981;
+  --usage-c3: #d9a441;
+  --usage-c4: #8f6bb3;
+  --usage-c5: #c65746;
+  --usage-c6: #4fa3a5;
+  --usage-c-rest: color-mix(in srgb, var(--text-tertiary) 55%, transparent);
+  --usage-input: var(--usage-c1);
+  --usage-cache-read: color-mix(in srgb, var(--usage-c1) 42%, var(--bg-primary));
+  --usage-cache-write: var(--usage-c3);
+  --usage-output: var(--usage-c2);
+  --usage-reasoning: var(--usage-c4);
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* ---------- header ---------- */
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(26px, 3.2vw, 30px);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.meta {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-family: $font-mono;
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+
+  &::before {
+    content: '▍';
+    color: var(--viz-success);
+    font-size: 13px;
+    line-height: 1;
+    align-self: center;
+    margin-right: 1px;
+  }
+}
+
+.metaDot {
+  color: var(--text-quaternary);
+  user-select: none;
+}
+
+.metaStrong {
+  color: var(--viz-success);
+}
+
+.metaMuted {
+  color: var(--text-tertiary);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* The range picker is dressed as an outline pill to sit with the actions. */
+.rangeSelect {
+  flex: 0 0 auto;
+  width: 164px;
+  max-width: 100%;
+
+  button[aria-haspopup='listbox'] {
+    height: 34px;
+    padding: 0 14px 0 16px;
+    border-color: var(--border-color);
+    border-radius: $radius-full;
+    background: transparent;
+    box-shadow: none;
+    font-size: 13.5px;
+    font-weight: 600;
+
+    &:focus-visible,
+    &[aria-expanded='true'] {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rangeSelect button[aria-haspopup='listbox']:hover {
+    border-color: var(--border-hover);
+    background: color-mix(in srgb, var(--bg-tertiary) 55%, transparent);
+  }
+}
+
+%pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  border-radius: $radius-full;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    transform var(--dur-press, 160ms) var(--ease-out-strong, ease-out),
+    border-color var(--dur-hover, 200ms) var(--ease-out-strong, ease-out),
+    background-color var(--dur-hover, 200ms) var(--ease-out-strong, ease-out),
+    box-shadow var(--dur-hover, 200ms) var(--ease-out-strong, ease-out);
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+}
+
+.primaryAction {
+  @extend %pill;
+  border: 0;
+  background: var(--text-primary);
+  color: var(--bg-secondary);
+  padding: 10px 18px;
+}
+
+.secondaryAction {
+  @extend %pill;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-primary);
+  padding: 9px 16px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primaryAction:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: color-mix(in srgb, var(--text-primary) 86%, var(--bg-secondary));
+    box-shadow: 0 12px 26px color-mix(in srgb, var(--text-primary) 22%, transparent);
+  }
+
+  .secondaryAction:hover:not(:disabled) {
+    border-color: var(--border-hover);
+    background: color-mix(in srgb, var(--bg-tertiary) 55%, transparent);
+  }
+}
+
+.spinning {
+  animation: usage-spin 0.8s linear infinite;
+}
+
+@keyframes usage-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- summary strip ---------- */
+
+/* Tiles draw their own right and bottom hairlines and the strip clips the
+ * outermost ones. Unlike a gap over a coloured background, this leaves no
+ * filled cell when the last row has fewer tiles than columns. */
+.strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px 18px;
+  box-shadow:
+    1px 0 0 var(--border-color),
+    0 1px 0 var(--border-color);
+}
+
+.tileLabel {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  @include text-ellipsis;
+}
+
+.tileValue {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  @include text-ellipsis;
+}
+
+.tileValueAccent {
+  color: var(--viz-success);
+}
+
+.tileValueMuted {
+  color: var(--text-quaternary);
+}
+
+.tileSub {
+  margin: 0;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+  @include text-ellipsis;
+}
+
+/* ---------- panels ---------- */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+}
+
+.panelHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  min-width: 0;
+}
+
+.panelTitles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.panelHint {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-tertiary);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 20px;
+  align-items: start;
+}
+
+/* ---------- segmented control ---------- */
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--bg-tertiary);
+}
+
+.segment {
+  @include button-reset;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-hover, 200ms) var(--ease-out-strong, ease-out),
+    color var(--dur-hover, 200ms) var(--ease-out-strong, ease-out);
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+  }
+}
+
+.segmentActive {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  box-shadow: var(--shadow);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .segment:hover:not(.segmentActive) {
+    color: var(--text-primary);
+  }
+}
+
+/* ---------- chart ---------- */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 240px;
+}
+
+.legendLabel {
+  @include text-ellipsis;
+}
+
+.swatch {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+}
+
+.chart {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 10px;
+  min-width: 0;
+}
+
+.axis {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: space-between;
+  height: 220px;
+  font-family: $font-mono;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--text-tertiary);
+  text-align: right;
+
+  /* Centre each label on its gridline. */
+  > span {
+    transform: translateY(50%);
+
+    &:last-child {
+      transform: translateY(-50%);
+    }
+
+    &:first-child {
+      transform: none;
+    }
+  }
+}
+
+.plot {
+  position: relative;
+  height: 220px;
+  min-width: 0;
+  /* One hairline per axis interval. */
+  background-image: linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
+  background-size: 100% 25%;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.bars {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+  gap: clamp(1px, 0.5%, 6px);
+}
+
+.column {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  border-radius: 3px 3px 0 0;
+  outline: none;
+
+  &::before {
+    /* Hover band: makes thin bars easy to target. */
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 4px 4px 0 0;
+    background: transparent;
+    transition: background-color var(--dur-hover, 200ms) var(--ease-out-strong, ease-out);
+  }
+
+  &:hover::before,
+  &:focus-visible::before {
+    background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  }
+
+  &:focus-visible::before {
+    box-shadow: inset 0 0 0 2px var(--primary-color);
+  }
+}
+
+.stack {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  width: 100%;
+  max-width: 44px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 3px 3px 0 0;
+}
+
+.stackSegment {
+  width: 100%;
+  min-height: 0;
+}
+
+.tooltip {
+  position: absolute;
+  /* `bottom` is set inline, just above each bar. */
+  left: 50%;
+  z-index: 5;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  width: max-content;
+  min-width: 170px;
+  max-width: 260px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--floating-surface);
+  box-shadow: var(--floating-shadow);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.tooltipStart {
+  left: 0;
+  transform: none;
+}
+
+.tooltipEnd {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.column:hover .tooltip,
+.column:focus-visible .tooltip {
+  display: flex;
+}
+
+.tooltipTitle {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.tooltipRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.tooltipName {
+  flex: 1 1 auto;
+  min-width: 0;
+  @include text-ellipsis;
+}
+
+.tooltipValue {
+  flex-shrink: 0;
+  margin-left: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.xAxis {
+  grid-column: 2;
+  display: flex;
+  gap: clamp(1px, 0.5%, 6px);
+  margin-top: 8px;
+  font-family: $font-mono;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--text-tertiary);
+}
+
+.xTick {
+  flex: 1 1 0;
+  min-width: 0;
+  /* Labels are wider than thin bars; centre them and let them overhang. */
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+
+  > span {
+    flex-shrink: 0;
+  }
+}
+
+/* ---------- tables ---------- */
+
+.table {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tableScroll {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.row {
+  display: grid;
+  align-items: center;
+  gap: 0 16px;
+  min-width: 0;
+  padding: 10px 0;
+  border-top: 1px solid var(--border-color);
+  font-size: 13.5px;
+  color: var(--text-primary);
+}
+
+.rowHead {
+  padding: 0 0 8px;
+  border-top: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-tertiary);
+}
+
+.accountRow {
+  grid-template-columns: minmax(180px, 2.4fr) repeat(3, minmax(84px, 1fr)) 112px minmax(
+      120px,
+      1.3fr
+    );
+  min-width: 720px;
+}
+
+.breakdownRow {
+  grid-template-columns: minmax(140px, 2fr) minmax(90px, 2fr) repeat(3, minmax(72px, 0.8fr));
+  min-width: 560px;
+}
+
+.speedRow {
+  grid-template-columns: minmax(150px, 2fr) repeat(4, minmax(78px, 1fr));
+  min-width: 560px;
+}
+
+.statusRow {
+  grid-template-columns: minmax(0, 1fr) 96px 72px;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.numMuted {
+  color: var(--text-tertiary);
+}
+
+/* Fixed width so the share bars beside it all end at the same x. */
+.sharePercent {
+  flex: 0 0 46px;
+}
+
+.cellMain {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* ---------- per-account model rows ---------- */
+
+.accountCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.expandButton {
+  @include button-reset;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  color: var(--text-tertiary);
+  /* Collapsed points right; open points down. */
+  transform: rotate(-90deg);
+  transition:
+    transform var(--dur-hover, 200ms) var(--ease-out-strong, ease-out),
+    background-color var(--dur-hover, 200ms) var(--ease-out-strong, ease-out);
+
+  &:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+  }
+}
+
+.expandButtonOpen {
+  transform: none;
+}
+
+/* Model rows read as part of the account above: no rule, tighter, quieter. */
+.modelRow {
+  padding: 5px 0;
+  border-top: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+
+  &:has(+ .row:not(.modelRow)),
+  &:last-child {
+    padding-bottom: 14px;
+  }
+
+  /* Start the share bar where the account's value bar starts: past the
+   * multiple (44px) and its gap (10px). */
+  .valueCell {
+    padding-left: 54px;
+  }
+}
+
+.modelName {
+  /* Lines up with the account name, past the expand button. */
+  padding-left: 30px;
+  @include text-ellipsis;
+}
+
+.cellTitle {
+  font-weight: 600;
+  @include text-ellipsis;
+}
+
+.cellSub {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  @include text-ellipsis;
+}
+
+.mono {
+  font-family: $font-mono;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.muted {
+  color: var(--text-tertiary);
+}
+
+.track {
+  height: 6px;
+  min-width: 0;
+  border-radius: $radius-full;
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  overflow: hidden;
+}
+
+.trackFill {
+  display: block;
+  height: 100%;
+  border-radius: $radius-full;
+  background: var(--usage-c1);
+  transition: width 360ms var(--ease-out-strong, ease);
+}
+
+.trackFillValue {
+  background: var(--viz-success);
+}
+
+.valueCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+
+  .track {
+    flex: 1 1 auto;
+  }
+}
+
+.multiple {
+  flex-shrink: 0;
+  min-width: 44px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--viz-success);
+}
+
+.multipleLow {
+  color: var(--text-secondary);
+}
+
+.planInput {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 9px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  font-size: 13px;
+  transition: border-color var(--dur-hover, 200ms) var(--ease-out-strong, ease-out);
+
+  &:focus-within {
+    border-color: var(--border-hover);
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+  }
+
+  input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    appearance: textfield;
+
+    &::placeholder {
+      color: var(--text-quaternary);
+    }
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      margin: 0;
+      appearance: none;
+    }
+  }
+}
+
+.statusDot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--viz-success);
+}
+
+.statusDotFailed {
+  background: var(--viz-failure);
+}
+
+.footnote {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+.inlineState {
+  padding: 22px 0;
+  font-size: 13px;
+  text-align: center;
+  color: var(--text-tertiary);
+}
+
+/* ---------- notice ---------- */
+
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--amber-color) 35%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--amber-color) 9%, transparent);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+
+.noticeText {
+  flex: 1 1 280px;
+  min-width: 0;
+  margin: 0;
+}
+
+.linkButton {
+  @include button-reset;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* ---------- prices modal ---------- */
+
+.priceIntro {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.priceGrid {
+  display: grid;
+  grid-template-columns: minmax(150px, 2fr) repeat(3, minmax(74px, 1fr)) 30px;
+  align-items: center;
+  gap: 8px 10px;
+  font-size: 13px;
+}
+
+.priceHead {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+
+.priceField {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+
+  &:focus-visible {
+    border-color: var(--border-hover);
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+  }
+
+  &::placeholder {
+    color: var(--text-quaternary);
+  }
+}
+
+.priceModel {
+  min-width: 0;
+  font-family: $font-mono;
+  font-size: 12.5px;
+  @include text-ellipsis;
+}
+
+.iconButton {
+  @include button-reset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: var(--text-tertiary);
+
+  &:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+  }
+}
+
+.priceFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.priceError {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--error-color);
+}
+
+/* ---------- loading ---------- */
+
+.skeletonStrip {
+  height: 118px;
+  border-radius: 14px;
+}
+
+.skeletonPanel {
+  height: 320px;
+  border-radius: 14px;
+}
+
+/* ---------- responsive ---------- */
+
+@include tablet {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@include mobile {
+  .header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  .xLabelMinor {
+    display: none;
+  }
+
+  .tileValue {
+    font-size: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primaryAction,
+  .secondaryAction,
+  .segment,
+  .trackFill,
+  .expandButton,
+  .column::before {
+    transition: none;
+  }
+
+  .primaryAction:hover:not(:disabled),
+  .primaryAction:active:not(:disabled),
+  .secondaryAction:active:not(:disabled) {
+    transform: none;
+  }
+
+  .spinning {
+    animation: none;
+  }
+}
