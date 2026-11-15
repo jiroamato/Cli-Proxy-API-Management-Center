@@ -36,6 +36,7 @@ export type ClaudeQuotaData = {
   windows: ClaudeQuotaWindow[];
   extraUsage?: ClaudeExtraUsage | null;
   planType?: string | null;
+  fetchedAtMs: number;
 };
 
 const findFableUsageLimit = (payload: ClaudeUsagePayload) => {
@@ -181,12 +182,14 @@ const fetchClaudeQuota = async (file: AuthFileItem, t: TFunction): Promise<Claud
   }
 
   const [usageResult, profileResult] = await Promise.allSettled([
-    apiCallApi.request({
-      authIndex,
-      method: 'GET',
-      url: CLAUDE_USAGE_URL,
-      header: { ...CLAUDE_REQUEST_HEADERS },
-    }),
+    apiCallApi
+      .request({
+        authIndex,
+        method: 'GET',
+        url: CLAUDE_USAGE_URL,
+        header: { ...CLAUDE_REQUEST_HEADERS },
+      })
+      .then((response) => ({ response, fetchedAtMs: Date.now() })),
     apiCallApi.request({
       authIndex,
       method: 'GET',
@@ -199,7 +202,7 @@ const fetchClaudeQuota = async (file: AuthFileItem, t: TFunction): Promise<Claud
     throw usageResult.reason;
   }
 
-  const result = usageResult.value;
+  const { response: result, fetchedAtMs } = usageResult.value;
 
   if (result.statusCode < 200 || result.statusCode >= 300) {
     throw createStatusError(getApiCallErrorMessage(result), result.statusCode);
@@ -220,7 +223,7 @@ const fetchClaudeQuota = async (file: AuthFileItem, t: TFunction): Promise<Claud
         )
       : null;
 
-  return { windows, extraUsage: payload.extra_usage, planType };
+  return { windows, extraUsage: payload.extra_usage, planType, fetchedAtMs };
 };
 
 export const CLAUDE_CONFIG: QuotaProviderData<ClaudeQuotaState, ClaudeQuotaData> = {
@@ -236,6 +239,7 @@ export const CLAUDE_CONFIG: QuotaProviderData<ClaudeQuotaState, ClaudeQuotaData>
     windows: data.windows,
     extraUsage: data.extraUsage,
     planType: data.planType,
+    fetchedAtMs: data.fetchedAtMs,
   }),
   buildErrorState: (message, status) => ({
     status: 'error',

@@ -1544,7 +1544,8 @@
     "disabled": {
       "title": "Chưa bật ghi nhận mức sử dụng",
       "description": "Bật để ghi lại token, chi phí, độ trễ và dự án của từng yêu cầu. Prompt và phản hồi không bao giờ được lưu.",
-      "action": "Bật ghi nhận"
+      "action": "Bật ghi nhận",
+      "not_started": "Đã bật ghi nhận nhưng chưa bắt đầu. Hãy làm mới sau giây lát hoặc kiểm tra nhật ký máy chủ."
     },
     "empty": {
       "title": "Không có yêu cầu trong khoảng này",
@@ -1719,7 +1720,36 @@
     "ledger_aria": "Sổ cái credential",
     "reset_none": "Không có lần đặt lại nào đang chờ",
     "ledger_available": "khả dụng",
-    "ledger_renews": "gia hạn"
+    "ledger_renews": "gia hạn",
+    "pool_title": "Mức tiêu hao hạn mức",
+    "pool_description": "Tổng hạn mức còn lại của các tài khoản, ghi lại từ lưu lượng qua proxy và dự báo theo tốc độ tiêu hao trong 3 giờ gần nhất.",
+    "pool_range_label": "Khoảng thời gian biểu đồ",
+    "pool_range_1d": "24 giờ",
+    "pool_range_3d": "3 ngày",
+    "pool_range_7d": "7 ngày",
+    "pool_range_14d": "14 ngày",
+    "pool_window_label": "Cửa sổ hạn mức",
+    "pool_unknown": "Tài khoản chưa có dữ liệu: {{count}}",
+    "pool_stat_empty": "Hết hạn mức chung",
+    "pool_stat_first_empty": "Tài khoản hết đầu tiên",
+    "pool_stat_next_reset": "Lần đặt lại tới",
+    "pool_stat_burn": "Tiêu hao, 3 giờ qua",
+    "pool_burn_value": "{{value}}%/giờ",
+    "pool_not_before": "Không trước {{date}}",
+    "pool_empty_now": "Đã hết",
+    "pool_reset_gain": "+{{percent}}%",
+    "pool_reset_unknown": "Không rõ",
+    "pool_legend_recorded": "Đã ghi",
+    "pool_legend_projected": "Dự báo",
+    "pool_now": "Hiện tại",
+    "pool_note": "Dự báo giả định mức dùng của 3 giờ qua tiếp diễn, chuyển sang tài khoản còn hạn mức khi một tài khoản hết.",
+    "pool_thinned": "Khoảng dài chỉ giữ đỉnh và mẫu cuối của mỗi đoạn.",
+    "pool_tooltip_recorded": "còn {{percent}}% · đã ghi",
+    "pool_tooltip_projected": "còn {{percent}}% · dự báo",
+    "pool_chart_aria": "{{provider}} {{window}}: còn {{remaining}}% trên {{capacity}}%, gồm dữ liệu ghi và dự báo",
+    "pool_no_samples": "Các tài khoản này chưa có mẫu hạn mức. Mẫu xuất hiện khi phản hồi Claude hoặc Codex đi qua proxy.",
+    "pool_disabled": "Ghi nhận sử dụng đang tắt nên proxy không lưu lịch sử hạn mức.",
+    "pool_error": "Không tải được lịch sử hạn mức: {{message}}"
   },
   "plugin_management": {
     "title": "Quản lý Plugin",

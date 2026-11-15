@@ -61,6 +61,7 @@ export type CodexQuotaData = {
   rateLimitResetCredits: CodexRateLimitResetCredit[];
   rateLimitResetCreditsError: string;
   windows: CodexQuotaWindow[];
+  fetchedAtMs: number;
 };
 
 export const buildCodexQuotaWindows = (
@@ -427,13 +428,15 @@ const fetchCodexQuota = async (file: AuthFileItem, t: TFunction): Promise<CodexQ
   const accountId = resolveCodexChatgptAccountId(file);
   const requestHeader = buildCodexRequestHeader(file);
 
-  const [result, liveSubscriptionActiveUntil] = await Promise.all([
-    apiCallApi.request({
-      authIndex,
-      method: 'GET',
-      url: CODEX_USAGE_URL,
-      header: requestHeader,
-    }),
+  const [{ result, fetchedAtMs }, liveSubscriptionActiveUntil] = await Promise.all([
+    apiCallApi
+      .request({
+        authIndex,
+        method: 'GET',
+        url: CODEX_USAGE_URL,
+        header: requestHeader,
+      })
+      .then((response) => ({ result: response, fetchedAtMs: Date.now() })),
     fetchCodexSubscriptionActiveUntil(authIndex, accountId, requestHeader),
   ]);
 
@@ -474,6 +477,7 @@ const fetchCodexQuota = async (file: AuthFileItem, t: TFunction): Promise<CodexQ
     rateLimitResetCredits: resetCreditsData.credits,
     rateLimitResetCreditsError: resetCreditsData.error,
     windows,
+    fetchedAtMs,
   };
 };
 
@@ -566,6 +570,7 @@ export const CODEX_CONFIG: QuotaProviderData<CodexQuotaState, CodexQuotaData> = 
       data.rateLimitResetCreditsApplicableAvailableCount,
     rateLimitResetCredits: data.rateLimitResetCredits,
     rateLimitResetCreditsError: data.rateLimitResetCreditsError,
+    fetchedAtMs: data.fetchedAtMs,
   }),
   buildErrorState: (message, status) => ({
     status: 'error',

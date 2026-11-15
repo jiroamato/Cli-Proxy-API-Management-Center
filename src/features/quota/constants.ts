@@ -1,3 +1,4 @@
+import { DAY_MS } from '@/utils/time/durations';
 import type { QuotaProviderType } from './providers/types';
 
 /** tab 顺序 = 旧页五分区的纵向顺序，'全部' tab 下卡片也按此分组排列。 */
@@ -29,3 +30,15 @@ export const CARD_ENTRANCE_BUDGET_MS = 360;
 export const QUOTA_VIEW_MODES = ['ledger', 'cards'] as const;
 
 export type QuotaViewMode = (typeof QUOTA_VIEW_MODES)[number];
+
+/** Lookback choices for the quota burn chart. */
+export const POOL_RANGE_MS = {
+  '1d': DAY_MS,
+  '3d': 3 * DAY_MS,
+  '7d': 7 * DAY_MS,
+  '14d': 14 * DAY_MS,
+} as const;
+
+export type PoolRangeId = keyof typeof POOL_RANGE_MS;
+
+export const POOL_RANGE_IDS = Object.keys(POOL_RANGE_MS) as PoolRangeId[];

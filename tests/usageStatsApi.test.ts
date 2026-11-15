@@ -1,4 +1,5 @@
-import { describe, expect, test } from 'bun:test';
+import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { apiClient } from '../src/services/api/client';
 import {
   buildUsageQueryParams,
   isUsageStatsDisabledError,
@@ -6,6 +7,7 @@ import {
   normalizeUsageSpeed,
   normalizeUsageStats,
   serializeUsageSettings,
+  usageStatsApi,
 } from '../src/services/api/usageStats';
 
 describe('normalizeUsageStats', () => {
@@ -149,4 +151,43 @@ test('isUsageStatsDisabledError matches only the disabled-recording conflict', (
     false
   );
   expect(isUsageStatsDisabledError(new Error('boom'))).toBe(false);
+});
+
+describe('usageStatsApi.enableRecording', () => {
+  afterEach(() => mock.restore());
+
+  const disabled = Object.assign(new Error('usage statistics disabled'), {
+    status: 409,
+    apiCode: 'usage_statistics_disabled',
+  });
+
+  test('resolves live once the usage endpoints stop answering 409', async () => {
+    const put = spyOn(apiClient, 'put').mockResolvedValue({ status: 'ok' });
+    const get = spyOn(apiClient, 'get')
+      .mockRejectedValueOnce(disabled)
+      .mockRejectedValueOnce(disabled)
+      .mockResolvedValue({ settings: {} });
+
+    expect(await usageStatsApi.enableRecording()).toBe(true);
+    expect(put).toHaveBeenCalledWith('/config/observability/usage/usage-statistics-enabled', true);
+    expect(get).toHaveBeenCalledTimes(3);
+  });
+
+  test('resolves not live when recording never starts', async () => {
+    spyOn(apiClient, 'put').mockResolvedValue({ status: 'ok' });
+    spyOn(apiClient, 'get').mockRejectedValue(disabled);
+    spyOn(globalThis, 'setTimeout').mockImplementation(((callback: () => void) => {
+      callback();
+      return 0;
+    }) as unknown as typeof setTimeout);
+
+    expect(await usageStatsApi.enableRecording()).toBe(false);
+  });
+
+  test('passes on an error other than disabled recording', async () => {
+    spyOn(apiClient, 'put').mockResolvedValue({ status: 'ok' });
+    spyOn(apiClient, 'get').mockRejectedValue(Object.assign(new Error('boom'), { status: 500 }));
+
+    await expect(usageStatsApi.enableRecording()).rejects.toThrow('boom');
+  });
 });

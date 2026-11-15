@@ -1614,7 +1614,8 @@
     "disabled": {
       "title": "用量記錄尚未開啟",
       "description": "開啟後會記錄每次請求的 Token、費用、延遲與專案。不會儲存提示詞與回應內容。",
-      "action": "開啟記錄"
+      "action": "開啟記錄",
+      "not_started": "記錄已開啟，但尚未開始。請稍後重新整理，或查看伺服器日誌。"
     },
     "empty": {
       "title": "此時間範圍內沒有請求",
@@ -1789,7 +1790,36 @@
     "ledger_aria": "憑證帳本",
     "reset_none": "暫無待重置",
     "ledger_available": "可用",
-    "ledger_renews": "續訂"
+    "ledger_renews": "續訂",
+    "pool_title": "額度消耗",
+    "pool_description": "各帳號剩餘額度之和：依代理流量記錄，並按最近 3 小時的消耗速度預測。",
+    "pool_range_label": "圖表範圍",
+    "pool_range_1d": "24 小時",
+    "pool_range_3d": "3 天",
+    "pool_range_7d": "7 天",
+    "pool_range_14d": "14 天",
+    "pool_window_label": "額度視窗",
+    "pool_unknown": "無資料的帳號：{{count}}",
+    "pool_stat_empty": "額度池耗盡",
+    "pool_stat_first_empty": "首個帳號耗盡",
+    "pool_stat_next_reset": "下次重置",
+    "pool_stat_burn": "消耗速度（近 3 小時）",
+    "pool_burn_value": "{{value}}%/小時",
+    "pool_not_before": "{{date}} 前不會",
+    "pool_empty_now": "已耗盡",
+    "pool_reset_gain": "+{{percent}}%",
+    "pool_reset_unknown": "未知",
+    "pool_legend_recorded": "已記錄",
+    "pool_legend_projected": "預測",
+    "pool_now": "現在",
+    "pool_note": "預測假設最近 3 小時的用量持續，某個帳號耗盡後用量轉移到仍有額度的帳號。",
+    "pool_thinned": "較長範圍只保留每個區間的峰值與最後一個樣本。",
+    "pool_tooltip_recorded": "剩餘 {{percent}}% · 已記錄",
+    "pool_tooltip_projected": "剩餘 {{percent}}% · 預測",
+    "pool_chart_aria": "{{provider}} {{window}}：剩餘 {{remaining}}%，共 {{capacity}}%，含記錄與預測",
+    "pool_no_samples": "這些帳號還沒有額度樣本。Claude 或 Codex 的回應經過代理後才會記錄。",
+    "pool_disabled": "用量記錄已關閉，代理不會保存可繪製的額度歷史。",
+    "pool_error": "無法載入額度歷史：{{message}}"
   },
   "plugin_management": {
     "title": "插件管理",
