@@ -8,7 +8,7 @@
 import { apiClient } from './client';
 import { isRecord } from '@/utils/helpers';
 
-const USAGE_STATS_TIMEOUT_MS = 30 * 1000;
+export const USAGE_STATS_TIMEOUT_MS = 30 * 1000;
 const USAGE_DISABLED_API_CODE = 'usage_statistics_disabled';
 const RECORDING_START_ATTEMPTS = 20;
 const RECORDING_START_POLL_MS = 250;
@@ -103,23 +103,25 @@ const toStringRecord = (value: unknown): Record<string, string> => {
   return out;
 };
 
+/** The token, request, and cost fields every usage aggregate shares. */
+export const normalizeUsageMetrics = (raw: Record<string, unknown>): UsageMetrics => ({
+  requests: toNumber(raw.requests),
+  failed: toNumber(raw.failed),
+  inputTokens: toNumber(raw.input_tokens),
+  cacheReadTokens: toNumber(raw.cache_read_tokens),
+  cacheWriteTokens: toNumber(raw.cache_write_tokens),
+  outputTokens: toNumber(raw.output_tokens),
+  reasoningTokens: toNumber(raw.reasoning_tokens),
+  unclassifiedTokens: toNumber(raw.unclassified_tokens),
+  totalTokens: toNumber(raw.total_tokens),
+  webSearchRequests: toNumber(raw.web_search_requests),
+  costUsd: toNumber(raw.cost_usd),
+  unpricedTokens: toNumber(raw.unpriced_tokens),
+});
+
 const normalizeGroup = (raw: unknown): UsageGroup | null => {
   if (!isRecord(raw)) return null;
-  return {
-    dimensions: toStringRecord(raw.dimensions),
-    requests: toNumber(raw.requests),
-    failed: toNumber(raw.failed),
-    inputTokens: toNumber(raw.input_tokens),
-    cacheReadTokens: toNumber(raw.cache_read_tokens),
-    cacheWriteTokens: toNumber(raw.cache_write_tokens),
-    outputTokens: toNumber(raw.output_tokens),
-    reasoningTokens: toNumber(raw.reasoning_tokens),
-    unclassifiedTokens: toNumber(raw.unclassified_tokens),
-    totalTokens: toNumber(raw.total_tokens),
-    webSearchRequests: toNumber(raw.web_search_requests),
-    costUsd: toNumber(raw.cost_usd),
-    unpricedTokens: toNumber(raw.unpriced_tokens),
-  };
+  return { dimensions: toStringRecord(raw.dimensions), ...normalizeUsageMetrics(raw) };
 };
 
 export const normalizeUsageStats = (raw: unknown): UsageStatsResult => {
