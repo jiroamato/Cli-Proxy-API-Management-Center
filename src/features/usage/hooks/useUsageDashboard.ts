@@ -146,9 +146,11 @@ export function useUsageDashboard(rangeId: UsageRangeId) {
     [refresh]
   );
 
-  const enableRecording = useCallback(async () => {
-    await usageStatsApi.enableRecording();
+  /** Resolves to whether recording went live. */
+  const enableRecording = useCallback(async (): Promise<boolean> => {
+    const live = await usageStatsApi.enableRecording();
     await refresh();
+    return live;
   }, [refresh]);
 
   return { status, data, error, refreshing, refresh, updateSettings, enableRecording };

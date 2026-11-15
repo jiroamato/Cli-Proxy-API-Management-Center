@@ -1613,7 +1613,8 @@
     "disabled": {
       "title": "Usage recording is off",
       "description": "Turn it on to record tokens, cost, latency and project for every request. Prompts and responses are never stored.",
-      "action": "Turn on recording"
+      "action": "Turn on recording",
+      "not_started": "Recording is turned on but has not started yet. Refresh in a moment, or check the server log."
     },
     "empty": {
       "title": "No requests in this range",

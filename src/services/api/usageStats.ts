@@ -261,19 +261,21 @@ export const usageStatsApi = {
 
   /**
    * Turns on usage recording (the `usage-statistics-enabled` config flag) and
-   * waits until it is live. The server applies the flag on a config reload that
-   * finishes after the PUT returns, so an immediate read would still get 409.
+   * resolves to whether it went live. The server applies the flag on a config
+   * reload that finishes after the PUT returns, so an immediate read would
+   * still get 409.
    */
-  enableRecording: async (): Promise<void> => {
+  enableRecording: async (): Promise<boolean> => {
     await apiClient.put('/config/observability/usage/usage-statistics-enabled', true);
     for (let attempt = 0; attempt < RECORDING_START_ATTEMPTS; attempt += 1) {
       try {
         await apiClient.get('/observability/usage/settings', { timeout: USAGE_STATS_TIMEOUT_MS });
-        return;
+        return true;
       } catch (error) {
         if (!isUsageStatsDisabledError(error)) throw error;
       }
       await new Promise((resolve) => setTimeout(resolve, RECORDING_START_POLL_MS));
     }
+    return false;
   },
 };

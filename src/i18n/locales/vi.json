@@ -1570,7 +1570,8 @@
     "disabled": {
       "title": "Chưa bật ghi nhận mức sử dụng",
       "description": "Bật để ghi lại token, chi phí, độ trễ và dự án của từng yêu cầu. Prompt và phản hồi không bao giờ được lưu.",
-      "action": "Bật ghi nhận"
+      "action": "Bật ghi nhận",
+      "not_started": "Đã bật ghi nhận nhưng chưa bắt đầu. Hãy làm mới sau giây lát hoặc kiểm tra nhật ký máy chủ."
     },
     "empty": {
       "title": "Không có yêu cầu trong khoảng này",

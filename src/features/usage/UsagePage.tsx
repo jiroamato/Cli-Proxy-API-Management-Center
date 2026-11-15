@@ -128,7 +128,8 @@ export function UsagePage() {
   const handleEnable = async () => {
     setEnabling(true);
     try {
-      await enableRecording();
+      const live = await enableRecording();
+      if (!live) showNotification(t('usage.disabled.not_started'), 'warning');
       // The config page caches the full config; make it pick up the new flag.
       void fetchConfig(true).catch(() => undefined);
     } catch (enableError) {
