@@ -1658,7 +1658,9 @@
     },
     "tokens": {
       "input": "Input",
-      "cache_write": "Cache write",
+      "cache_write_5m": "Cache write 5m",
+      "cache_write_1h": "Cache write 1h",
+      "cache_write_unsplit": "Cache write, unknown lifetime",
       "cache_read": "Cache read",
       "output": "Output",
       "reasoning": "Reasoning",

@@ -126,11 +126,13 @@ describe('TurnsFigures rendering', () => {
   });
 });
 
-describe('turns strings', () => {
+describe('turns and cache write strings', () => {
   const locales = { ko, ru, vi, 'zh-CN': zhCN, 'zh-TW': zhTW };
+  const cacheWriteKeys = ['cache_write_5m', 'cache_write_1h', 'cache_write_unsplit'] as const;
 
   test.each(Object.entries(locales))('%s has every string English has', (_, locale) => {
     expect(Object.keys(locale.usage.turns).sort()).toEqual(Object.keys(en.usage.turns).sort());
     for (const value of Object.values(locale.usage.turns)) expect(value.trim()).not.toBe('');
+    for (const key of cacheWriteKeys) expect(locale.usage.tokens[key].trim()).not.toBe('');
   });
 });

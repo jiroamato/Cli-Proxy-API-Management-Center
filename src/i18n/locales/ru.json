@@ -1661,7 +1661,9 @@
     },
     "tokens": {
       "input": "Вход",
-      "cache_write": "Запись в кэш",
+      "cache_write_5m": "Запись в кэш 5m",
+      "cache_write_1h": "Запись в кэш 1h",
+      "cache_write_unsplit": "Запись в кэш, срок неизвестен",
       "cache_read": "Чтение из кэша",
       "output": "Выход",
       "reasoning": "Рассуждение",

@@ -1657,7 +1657,9 @@
     },
     "tokens": {
       "input": "输入",
-      "cache_write": "缓存写入",
+      "cache_write_5m": "缓存写入 5m",
+      "cache_write_1h": "缓存写入 1h",
+      "cache_write_unsplit": "缓存写入（时长未知）",
       "cache_read": "缓存读取",
       "output": "输出",
       "reasoning": "推理",

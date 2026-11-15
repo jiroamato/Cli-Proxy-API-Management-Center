@@ -20,6 +20,7 @@ import {
   subscriptionValue,
   sumMetrics,
   topModelsByCost,
+  unsplitCacheWrites,
   withAccountPlan,
 } from '../src/features/usage/logic';
 
@@ -106,6 +107,20 @@ describe('series and totals', () => {
     };
     expect(cacheHitRate(metrics)).toBe(80);
     expect(cacheHitRate({ ...emptyMetrics(), outputTokens: 5 })).toBeNull();
+  });
+
+  test('cache writes without a reported lifetime are what the 5m and 1h parts leave', () => {
+    const writes = (total: number, fiveMinutes: number, oneHour: number) =>
+      unsplitCacheWrites({
+        ...emptyMetrics(),
+        cacheWriteTokens: total,
+        cacheWrite5mTokens: fiveMinutes,
+        cacheWrite1hTokens: oneHour,
+      });
+    expect(writes(300, 100, 200)).toBe(0);
+    expect(writes(800, 0, 0)).toBe(800);
+    expect(writes(1100, 100, 200)).toBe(800);
+    expect(writes(100, 100, 200)).toBe(0);
   });
 
   test('error rate is null without requests', () => {

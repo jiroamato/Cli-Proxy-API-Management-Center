@@ -6,6 +6,7 @@ import {
   formatBucketLabel,
   formatUsd,
   formatUsdTick,
+  unsplitCacheWrites,
   type SeriesPoint,
   type UsageBucket,
 } from '../logic';
@@ -58,10 +59,22 @@ export function UsageChart({ series, bucket, topModels }: UsageChartProps) {
           valueOf: (point) => point.metrics.inputTokens,
         },
         {
-          id: 'cache_write',
-          label: t('usage.tokens.cache_write'),
+          id: 'cache_write_5m',
+          label: t('usage.tokens.cache_write_5m'),
           color: 'var(--usage-cache-write)',
-          valueOf: (point) => point.metrics.cacheWriteTokens,
+          valueOf: (point) => point.metrics.cacheWrite5mTokens,
+        },
+        {
+          id: 'cache_write_1h',
+          label: t('usage.tokens.cache_write_1h'),
+          color: 'var(--usage-cache-write-1h)',
+          valueOf: (point) => point.metrics.cacheWrite1hTokens,
+        },
+        {
+          id: 'cache_write_unsplit',
+          label: t('usage.tokens.cache_write_unsplit'),
+          color: 'var(--usage-cache-write-unsplit)',
+          valueOf: (point) => unsplitCacheWrites(point.metrics),
         },
         {
           id: 'cache_read',

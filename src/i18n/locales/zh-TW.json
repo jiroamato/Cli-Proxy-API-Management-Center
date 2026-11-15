@@ -1685,7 +1685,9 @@
     },
     "tokens": {
       "input": "輸入",
-      "cache_write": "快取寫入",
+      "cache_write_5m": "快取寫入 5m",
+      "cache_write_1h": "快取寫入 1h",
+      "cache_write_unsplit": "快取寫入（時長未知）",
       "cache_read": "快取讀取",
       "output": "輸出",
       "reasoning": "推理",

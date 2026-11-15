@@ -17,6 +17,8 @@
   --usage-input: var(--usage-c1);
   --usage-cache-read: color-mix(in srgb, var(--usage-c1) 42%, var(--bg-primary));
   --usage-cache-write: var(--usage-c3);
+  --usage-cache-write-1h: #b0702a;
+  --usage-cache-write-unsplit: color-mix(in srgb, var(--usage-c3) 45%, var(--bg-primary));
   --usage-output: var(--usage-c2);
   --usage-reasoning: var(--usage-c4);
 

@@ -1658,7 +1658,9 @@
     },
     "tokens": {
       "input": "입력",
-      "cache_write": "캐시 쓰기",
+      "cache_write_5m": "캐시 쓰기 5m",
+      "cache_write_1h": "캐시 쓰기 1h",
+      "cache_write_unsplit": "캐시 쓰기, 기간 미상",
       "cache_read": "캐시 읽기",
       "output": "출력",
       "reasoning": "추론",

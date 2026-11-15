@@ -1615,7 +1615,9 @@
     },
     "tokens": {
       "input": "Đầu vào",
-      "cache_write": "Ghi cache",
+      "cache_write_5m": "Ghi cache 5m",
+      "cache_write_1h": "Ghi cache 1h",
+      "cache_write_unsplit": "Ghi cache, không rõ thời hạn",
       "cache_read": "Đọc cache",
       "output": "Đầu ra",
       "reasoning": "Suy luận",

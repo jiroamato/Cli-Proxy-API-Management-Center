@@ -124,6 +124,10 @@ export function cacheHitRate(metrics: UsageMetrics): number | null {
   return input > 0 ? (metrics.cacheReadTokens / input) * 100 : null;
 }
 
+/** Cache writes reported without a 5m or 1h lifetime, as Codex reports them. */
+export const unsplitCacheWrites = (metrics: UsageMetrics): number =>
+  Math.max(0, metrics.cacheWriteTokens - metrics.cacheWrite5mTokens - metrics.cacheWrite1hTokens);
+
 /** Failed requests as a percentage; null with no requests. */
 export const errorRate = (metrics: UsageMetrics): number | null =>
   metrics.requests > 0 ? (metrics.failed / metrics.requests) * 100 : null;
