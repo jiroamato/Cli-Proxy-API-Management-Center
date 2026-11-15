@@ -182,12 +182,14 @@ const fetchClaudeQuota = async (file: AuthFileItem, t: TFunction): Promise<Claud
   }
 
   const [usageResult, profileResult] = await Promise.allSettled([
-    apiCallApi.request({
-      authIndex,
-      method: 'GET',
-      url: CLAUDE_USAGE_URL,
-      header: { ...CLAUDE_REQUEST_HEADERS },
-    }),
+    apiCallApi
+      .request({
+        authIndex,
+        method: 'GET',
+        url: CLAUDE_USAGE_URL,
+        header: { ...CLAUDE_REQUEST_HEADERS },
+      })
+      .then((response) => ({ response, fetchedAtMs: Date.now() })),
     apiCallApi.request({
       authIndex,
       method: 'GET',
@@ -200,8 +202,7 @@ const fetchClaudeQuota = async (file: AuthFileItem, t: TFunction): Promise<Claud
     throw usageResult.reason;
   }
 
-  const result = usageResult.value;
-  const fetchedAtMs = Date.now();
+  const { response: result, fetchedAtMs } = usageResult.value;
 
   if (result.statusCode < 200 || result.statusCode >= 300) {
     throw createStatusError(getApiCallErrorMessage(result), result.statusCode);

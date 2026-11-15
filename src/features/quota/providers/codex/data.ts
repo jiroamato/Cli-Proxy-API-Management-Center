@@ -428,13 +428,15 @@ const fetchCodexQuota = async (file: AuthFileItem, t: TFunction): Promise<CodexQ
   const accountId = resolveCodexChatgptAccountId(file);
   const requestHeader = buildCodexRequestHeader(file);
 
-  const [result, liveSubscriptionActiveUntil] = await Promise.all([
-    apiCallApi.request({
-      authIndex,
-      method: 'GET',
-      url: CODEX_USAGE_URL,
-      header: requestHeader,
-    }),
+  const [{ result, fetchedAtMs }, liveSubscriptionActiveUntil] = await Promise.all([
+    apiCallApi
+      .request({
+        authIndex,
+        method: 'GET',
+        url: CODEX_USAGE_URL,
+        header: requestHeader,
+      })
+      .then((response) => ({ result: response, fetchedAtMs: Date.now() })),
     fetchCodexSubscriptionActiveUntil(authIndex, accountId, requestHeader),
   ]);
 
@@ -446,7 +448,6 @@ const fetchCodexQuota = async (file: AuthFileItem, t: TFunction): Promise<CodexQ
   if (!payload) {
     throw new Error(t('codex_quota.empty_windows'));
   }
-  const fetchedAtMs = Date.now();
 
   const planTypeFromUsage = normalizePlanType(payload.plan_type ?? payload.planType);
   const accountCredits = normalizeCodexAccountCredits(payload.credits);
