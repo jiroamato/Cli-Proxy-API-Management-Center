@@ -27,6 +27,10 @@ const classes = bindQuotaClasses(
   'test-host'
 );
 
+// Amounts render in the viewer's locale, which is "US$" rather than "$" outside en-US.
+const usd = (amount: number) =>
+  new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(amount);
+
 const WEEKLY_PERIOD_START = '2026-09-17T13:32:42.093205+00:00';
 const WEEKLY_PERIOD_END = '2026-09-24T13:32:42.093205+00:00';
 
@@ -102,7 +106,7 @@ describe('XaiQuotaBody unavailable weekly usage', () => {
     expect(markup).not.toContain('Used 0%');
     // Zero-budget zero-used monthly row is hidden while weekly data exists.
     expect(markup).not.toContain('Monthly credits');
-    expect(markup).not.toContain('$0.00 / $0.00');
+    expect(markup).not.toContain(`${usd(0)} / ${usd(0)}`);
   });
 
   test('keeps usagePercent null for a malformed percentage string', () => {
@@ -197,8 +201,8 @@ describe('XaiQuotaBody unavailable weekly usage', () => {
     expect(markup).toContain(formatInstantShort(Date.parse(WEEKLY_PERIOD_END)));
     expect(markup).toContain('GrokChat usage');
     expect(markup).toContain('Prepaid');
-    expect(markup).toContain('$2.50');
-    expect(markup).toContain('$0.00 / $0.00');
+    expect(markup).toContain(usd(2.5));
+    expect(markup).toContain(`${usd(0)} / ${usd(0)}`);
   });
 
   test('renders product contributions as text with only one shared weekly meter', () => {
@@ -255,8 +259,8 @@ describe('XaiQuotaBody unavailable weekly usage', () => {
       )
     );
     expect(markup).toContain('>90%<');
-    expect(markup).toContain('$135.00 / $150.00');
-    expect(markup).not.toContain('$15.00 / $150.00');
+    expect(markup).toContain(`${usd(135)} / ${usd(150)}`);
+    expect(markup).not.toContain(`${usd(15)} / ${usd(150)}`);
     expect(markup).toContain('width:90%');
   });
 
