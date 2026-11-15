@@ -989,7 +989,8 @@
 
 /* ---------- responsive ---------- */
 
-@include tablet {
+/* Not the tablet mixin: it starts above the phone breakpoint and would leave phones on two columns. */
+@media (max-width: $breakpoint-tablet) {
   .split {
     grid-template-columns: minmax(0, 1fr);
   }
