@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import i18n from '@/i18n';
 import type { AuthFileItem, DevinQuotaState } from '@/types';
 import { readDevinQuotaResponse } from '@/services/api/devinQuota';
+import { formatInstantShort } from '@/utils/quota';
 import { DEVIN_CONFIG } from '@/features/quota/providers/devin/data';
 import { DevinQuotaBody } from '@/features/quota/providers/devin/DevinQuotaBody';
 import { QUOTA_CLASS_KEYS, bindQuotaClasses } from '@/features/quota/types';
@@ -71,9 +72,9 @@ describe('Devin quota UI integration', () => {
     expect(markup).toContain('width:0%');
     expect(markup).toContain('width:80%');
     expect(markup).toContain('Pro');
-    expect(markup).toContain('01/02');
-    expect(markup).toContain('01/08');
-    expect(markup).not.toContain('01/01');
+    expect(markup).toContain(formatInstantShort(Date.parse('2099-01-02T00:00:00Z')));
+    expect(markup).toContain(formatInstantShort(Date.parse('2099-01-08T00:00:00Z')));
+    expect(markup).not.toContain(formatInstantShort(observedAtMs));
     expect(markup).not.toContain(classes.quotaMessage);
   });
 
