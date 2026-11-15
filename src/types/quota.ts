@@ -181,6 +181,8 @@ export interface ClaudeQuotaState {
   windows: ClaudeQuotaWindow[];
   extraUsage?: ClaudeExtraUsage | null;
   planType?: string | null;
+  /** When the usage read returned; orders it against recorded quota samples. */
+  fetchedAtMs?: number;
   error?: string;
   errorStatus?: number;
 }
@@ -267,6 +269,8 @@ export interface CodexQuotaState {
   rateLimitResetCreditsApplicableAvailableCount?: number | null;
   rateLimitResetCredits?: CodexRateLimitResetCredit[];
   rateLimitResetCreditsError?: string;
+  /** When the usage read returned; orders it against recorded quota samples. */
+  fetchedAtMs?: number;
   error?: string;
   errorStatus?: number;
 }

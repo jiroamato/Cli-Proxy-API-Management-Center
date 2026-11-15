@@ -416,6 +416,37 @@ const buildMeta = (quota: MetaQuotaState, t: TFunction): LedgerCredential | null
   };
 };
 
+/**
+ * A credential with columns updated from recorded quota state: matching
+ * columns take the recorded remaining percent and reset, and windows the
+ * credential has not loaded are added. Null stays null when nothing is recorded.
+ */
+export function withRecordedMetrics(
+  type: QuotaProviderType,
+  credential: LedgerCredential | null,
+  recorded: readonly LedgerMetric[]
+): LedgerCredential | null {
+  if (recorded.length === 0) return credential;
+  const base: LedgerCredential = credential ?? {
+    plan: null,
+    planTier: 'standard',
+    renewsAtMs: null,
+    metrics: [],
+    extras: [],
+    message: null,
+  };
+  const recordedById = new Map(recorded.map((metric) => [metric.id, metric]));
+  const metrics = base.metrics.map((metric) => {
+    const update = recordedById.get(metric.id);
+    return update
+      ? { ...metric, remainingPercent: update.remainingPercent, resetAtMs: update.resetAtMs }
+      : metric;
+  });
+  const known = new Set(base.metrics.map((metric) => metric.id));
+  const added = recorded.filter((metric) => !known.has(metric.id));
+  return { ...base, metrics: orderLedgerMetrics(type, [...metrics, ...added]) };
+}
+
 /** Copy for a successful load with nothing to show; providers never agreed on one key. */
 export const LEDGER_EMPTY_MESSAGE_KEYS: Record<QuotaProviderType, string> = {
   claude: 'claude_quota.empty_windows',
