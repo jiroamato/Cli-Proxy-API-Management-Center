@@ -29,6 +29,7 @@ import { ProviderTabs } from '@/features/authFiles/components/ProviderTabs';
 import { QuotaHeader } from './components/QuotaHeader';
 import { QuotaCard } from './components/QuotaCard';
 import { QuotaLedger, type QuotaLedgerGroup } from './components/QuotaLedger';
+import { QuotaPoolSection } from './components/QuotaPoolSection';
 import { QuotaSummaryStrip } from './components/QuotaSummaryStrip';
 import { QuotaTimeline } from './components/QuotaTimeline';
 import {
@@ -56,6 +57,7 @@ import {
   buildLedgerCredential,
   buildProviderSummary,
   maskEmails,
+  withRecordedMetrics,
   type LedgerCredential,
   type ProviderSummary,
 } from './ledger/model';
@@ -65,6 +67,7 @@ import type { QuotaProviderType } from './providers/types';
 import { useDevinQuotaAutoLoad } from './providers/devin/useDevinQuotaAutoLoad';
 import { useQuotaActions } from './hooks/useQuotaActions';
 import { useQuotaBatchLoader } from './hooks/useQuotaBatchLoader';
+import { useQuotaPools } from './hooks/useQuotaPools';
 import { readQuotaUiState, writeQuotaUiState } from './uiState';
 import styles from './QuotaPage.module.scss';
 
@@ -129,8 +132,6 @@ export function QuotaPage() {
       if (isCurrent()) setLoading(false);
     }
   }, [connectionStatus, sessionGeneration, t]);
-
-  useHeaderRefresh(loadFiles);
 
   useEffect(() => {
     void loadFiles();
@@ -306,15 +307,6 @@ export function QuotaPage() {
     [ledgerCredentials]
   );
 
-  // 汇总条覆盖当前 tab 的全部凭证（不受分页影响）；未加载的凭证贡献空段。
-  const summaries = useMemo<ProviderSummary[]>(
-    () =>
-      groupQuotaEntriesByProvider(tabEntries).map((group) =>
-        buildProviderSummary(group.type, group.entries.map(credentialFor), group.provider)
-      ),
-    [tabEntries, credentialFor]
-  );
-
   const ledgerGroups = useMemo<QuotaLedgerGroup[]>(
     () => groupQuotaEntriesByProvider(pageItems),
     [pageItems]
@@ -333,6 +325,41 @@ export function QuotaPage() {
     [showEmails]
   );
 
+  /* ---------- Quota burn: the tab's Claude and Codex credentials ---------- */
+
+  const pools = useQuotaPools({
+    entries: tabEntries,
+    quotaFor: getQuota,
+    credentialFor,
+    displayNameFor,
+    connected: connectionStatus === 'connected',
+    session: sessionGeneration,
+  });
+  const { recordedMetricsFor, refresh: refreshPools } = pools;
+
+  // 汇总条覆盖当前 tab 的全部凭证（不受分页影响）；未加载的凭证贡献空段。
+  // Claude and Codex rows also take their newest recorded quota state, so the
+  // strip sums the same "now" as the quota burn header.
+  const summaries = useMemo<ProviderSummary[]>(
+    () =>
+      groupQuotaEntriesByProvider(tabEntries).map((group) =>
+        buildProviderSummary(
+          group.type,
+          group.entries.map((entry) =>
+            withRecordedMetrics(entry.type, credentialFor(entry), recordedMetricsFor(entry))
+          ),
+          group.provider
+        )
+      ),
+    [tabEntries, credentialFor, recordedMetricsFor]
+  );
+
+  const refreshPage = useCallback(async () => {
+    await Promise.all([loadFiles(), refreshPools()]);
+  }, [loadFiles, refreshPools]);
+
+  useHeaderRefresh(refreshPage);
+
   /* ---------- 加载与操作 ---------- */
 
   const { batchLoading, loadQuota } = useQuotaBatchLoader();
@@ -345,8 +372,8 @@ export function QuotaPage() {
   const handleRefreshAll = useCallback(() => {
     if (disableControls) return;
     pendingRefreshRef.current = sessionGeneration;
-    void loadFiles();
-  }, [disableControls, loadFiles, sessionGeneration]);
+    void refreshPage();
+  }, [disableControls, refreshPage, sessionGeneration]);
 
   useEffect(() => {
     const wasLoading = prevLoadingRef.current;
@@ -586,6 +613,18 @@ export function QuotaPage() {
             </Button>
           </div>
         )}
+
+        <QuotaPoolSection
+          groups={pools.groups}
+          status={pools.status}
+          error={pools.error}
+          rangeId={pools.rangeId}
+          resolvedTheme={resolvedTheme}
+          enabling={pools.enabling}
+          onRangeChange={pools.setRangeId}
+          onRetry={() => void refreshPools()}
+          onEnableRecording={() => void pools.enableRecording()}
+        />
 
         {/* 时间线只比较当前页凭证，避免大量凭证一次性生成无界泳道。 */}
         <QuotaTimeline
