@@ -161,17 +161,27 @@ describe('usageStatsApi.enableRecording', () => {
     apiCode: 'usage_statistics_disabled',
   });
 
-  test('resolves only once the usage endpoints stop answering 409', async () => {
+  test('resolves live once the usage endpoints stop answering 409', async () => {
     const put = spyOn(apiClient, 'put').mockResolvedValue({ status: 'ok' });
     const get = spyOn(apiClient, 'get')
       .mockRejectedValueOnce(disabled)
       .mockRejectedValueOnce(disabled)
       .mockResolvedValue({ settings: {} });
 
-    await usageStatsApi.enableRecording();
-
+    expect(await usageStatsApi.enableRecording()).toBe(true);
     expect(put).toHaveBeenCalledWith('/config/observability/usage/usage-statistics-enabled', true);
     expect(get).toHaveBeenCalledTimes(3);
+  });
+
+  test('resolves not live when recording never starts', async () => {
+    spyOn(apiClient, 'put').mockResolvedValue({ status: 'ok' });
+    spyOn(apiClient, 'get').mockRejectedValue(disabled);
+    spyOn(globalThis, 'setTimeout').mockImplementation(((callback: () => void) => {
+      callback();
+      return 0;
+    }) as unknown as typeof setTimeout);
+
+    expect(await usageStatsApi.enableRecording()).toBe(false);
   });
 
   test('passes on an error other than disabled recording', async () => {
