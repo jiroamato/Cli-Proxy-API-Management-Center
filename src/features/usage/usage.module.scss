@@ -1036,3 +1036,116 @@
     animation: none;
   }
 }
+
+/* ---------- limit value ---------- */
+
+.limitCards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.limitCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.limitHead {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  min-width: 0;
+}
+
+.limitTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.limitSub {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+.limitFigures {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 16px;
+  margin: 0;
+
+  @media (max-width: 720px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  dt {
+    margin: 0 0 4px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    @include text-ellipsis;
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.limitFigureMain {
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.limitFigureSub {
+  margin-top: 3px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--viz-success);
+}
+
+/* Thin evidence stays readable but steps back, so it is never read as a measured figure. */
+.limitCardThin .limitFigureMain,
+.rowThin {
+  color: var(--text-quaternary);
+}
+
+.limitRow {
+  grid-template-columns: minmax(160px, 2fr) repeat(3, minmax(96px, 1fr)) minmax(150px, 1.4fr);
+  min-width: 620px;
+}
+
+.limitEvidenceCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+.thinTag {
+  padding: 1px 7px;
+  border: 1px solid var(--border-color);
+  border-radius: $radius-full;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  cursor: help;
+}
+
+.limitToggle {
+  align-self: flex-start;
+  font-size: 12.5px;
+}

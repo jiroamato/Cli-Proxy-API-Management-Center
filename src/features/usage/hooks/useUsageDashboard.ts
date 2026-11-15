@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { limitValueApi, type LimitValueResult } from '@/services/api/limitValue';
 import {
   isUsageStatsDisabledError,
   usageStatsApi,
@@ -198,7 +199,12 @@ export function useUsageBreakdown(
       })
       .catch((loadError: unknown) => {
         if (cancelled) return;
-        setState({ ...LOADING_BREAKDOWN, dimension, loading: false, error: errorMessage(loadError) });
+        setState({
+          ...LOADING_BREAKDOWN,
+          dimension,
+          loading: false,
+          error: errorMessage(loadError),
+        });
       });
     return () => {
       cancelled = true;
@@ -206,4 +212,41 @@ export function useUsageBreakdown(
   }, [range, dimension]);
 
   return state.dimension === dimension ? state : LOADING_BREAKDOWN;
+}
+
+export interface LimitValueState {
+  result: LimitValueResult | null;
+  loading: boolean;
+  error: string;
+}
+
+/** Loads what each quota window's percent bought over the dashboard's current range. */
+export function useLimitValue(range: UsageRange | null): LimitValueState {
+  const [state, setState] = useState<LimitValueState & { range: UsageRange | null }>({
+    result: null,
+    loading: true,
+    error: '',
+    range: null,
+  });
+
+  useEffect(() => {
+    if (!range) return undefined;
+    let cancelled = false;
+    limitValueApi
+      .get({ from: range.from, to: range.to })
+      .then((result) => {
+        if (!cancelled) setState({ result, loading: false, error: '', range });
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setState({ result: null, loading: false, error: errorMessage(loadError), range });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [range]);
+
+  // A result for an earlier range is kept on screen while the new one loads.
+  return state.range === range ? state : { ...state, loading: true };
 }

@@ -20,6 +20,7 @@ import { useRevealGroup } from '@/hooks/motion';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useConfigStore, useNotificationStore } from '@/stores';
 import { formatCompactNumber, formatPercent } from '@/utils/format';
+import { LimitValuePanel } from './components/LimitValuePanel';
 import { ModelPricesModal } from './components/ModelPricesModal';
 import { UsageChart } from './components/UsageChart';
 import {
@@ -353,6 +354,12 @@ export function UsagePage() {
             onSavePlan={(provider, account, monthlyUsd) =>
               void handleSavePlan(provider, account, monthlyUsd)
             }
+          />
+
+          <LimitValuePanel
+            range={data.range}
+            plans={data.settings.accountPlans}
+            displayAccount={displayAccount}
           />
 
           <BreakdownPanel range={data.range} />
