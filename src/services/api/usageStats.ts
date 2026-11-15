@@ -8,7 +8,7 @@
 import { apiClient } from './client';
 import { isRecord } from '@/utils/helpers';
 
-const USAGE_STATS_TIMEOUT_MS = 30 * 1000;
+export const USAGE_STATS_TIMEOUT_MS = 30 * 1000;
 const USAGE_DISABLED_API_CODE = 'usage_statistics_disabled';
 const RECORDING_START_ATTEMPTS = 20;
 const RECORDING_START_POLL_MS = 250;
