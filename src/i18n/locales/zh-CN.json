@@ -1608,6 +1608,28 @@
       "unpriced": "未定价模型的 Token 未计入这些数值：{{models}}。",
       "footnote": "上方的订阅价值比较的是你实际用掉的部分与套餐价格。这里的每月估算是每周都用满一份周额度的价值，按每月 30/7 周计算。模型的数值只来自它占主导的区间。依据少于一份额度 {{percent}}% 的数值标记为依据不足。"
     },
+    "turns": {
+      "title": "轮次与线程",
+      "hint": "一轮是一次完成的回复，一个线程是一个会话。",
+      "turns": "轮次",
+      "threads": "线程",
+      "per_turn": "每轮 API 费用",
+      "per_thread": "每线程 API 费用",
+      "requests_per_turn": "每轮 {{value}} 个请求",
+      "thread_split": "主会话 {{main}} · 子代理 {{subagent}}",
+      "tokens_per_turn": "每轮 {{value}} tokens",
+      "turns_per_thread": "每线程 {{value}} 轮",
+      "not_recorded": "未记录",
+      "no_data": "无数据",
+      "no_requests": "无请求",
+      "unrecorded_notice": "此范围内没有请求记录回复结束的原因，因此无法统计轮次。只有 Claude 和 Codex 的请求会记录它，并且只从支持轮次统计的代理版本开始。",
+      "partial_notice": "此范围内 {{share}} 的成功请求（{{value}} 个）没有记录停止原因，因此不计入轮次。它们是较早的请求，或来自 Claude 和 Codex 以外的提供商。",
+      "months_label": "每月轮次与线程",
+      "month": "月份",
+      "month_span": "{{from}} 至 {{to}}",
+      "partly_recorded": "部分记录",
+      "footnote": "子代理会话单独计为线程。每轮数值只统计记录了停止原因的请求。未发送会话 ID 的客户端按开场消息分组，因此开头相同的两个线程计为一个。"
+    },
     "error_title": "用量加载失败",
     "disabled": {
       "title": "用量记录未开启",

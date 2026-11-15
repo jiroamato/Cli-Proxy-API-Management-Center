@@ -1636,6 +1636,28 @@
       "unpriced": "未定價模型的 Token 未計入這些數值：{{models}}。",
       "footnote": "上方的訂閱價值比較的是你實際用掉的部分與方案價格。這裡的每月估算是每週都用滿一份週額度的價值，按每月 30/7 週計算。模型的數值只來自它佔主導的區間。依據少於一份額度 {{percent}}% 的數值標記為依據不足。"
     },
+    "turns": {
+      "title": "輪次與執行緒",
+      "hint": "一輪是一次完成的回覆，一個執行緒是一個工作階段。",
+      "turns": "輪次",
+      "threads": "執行緒",
+      "per_turn": "每輪 API 費用",
+      "per_thread": "每執行緒 API 費用",
+      "requests_per_turn": "每輪 {{value}} 個請求",
+      "thread_split": "主工作階段 {{main}} · 子代理 {{subagent}}",
+      "tokens_per_turn": "每輪 {{value}} tokens",
+      "turns_per_thread": "每執行緒 {{value}} 輪",
+      "not_recorded": "未記錄",
+      "no_data": "無資料",
+      "no_requests": "無請求",
+      "unrecorded_notice": "此範圍內沒有請求記錄回覆結束的原因，因此無法統計輪次。只有 Claude 和 Codex 的請求會記錄它，並且只從支援輪次統計的代理版本開始。",
+      "partial_notice": "此範圍內 {{share}} 的成功請求（{{value}} 個）沒有記錄停止原因，因此不計入輪次。它們是較早的請求，或來自 Claude 和 Codex 以外的提供者。",
+      "months_label": "每月輪次與執行緒",
+      "month": "月份",
+      "month_span": "{{from}} 至 {{to}}",
+      "partly_recorded": "部分記錄",
+      "footnote": "子代理工作階段單獨計為執行緒。每輪數值只統計記錄了停止原因的請求。未傳送工作階段 ID 的客戶端按開場訊息分組，因此開頭相同的兩個執行緒計為一個。"
+    },
     "error_title": "用量載入失敗",
     "disabled": {
       "title": "用量記錄尚未開啟",

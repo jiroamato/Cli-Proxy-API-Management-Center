@@ -22,6 +22,7 @@ import { useConfigStore, useNotificationStore } from '@/stores';
 import { formatCompactNumber, formatPercent } from '@/utils/format';
 import { LimitValuePanel } from './components/LimitValuePanel';
 import { ModelPricesModal } from './components/ModelPricesModal';
+import { TurnsPanel } from './components/TurnsPanel';
 import { UsageChart } from './components/UsageChart';
 import {
   AccountValueTable,
@@ -362,6 +363,8 @@ export function UsagePage() {
             plans={data.settings.accountPlans}
             displayAccount={displayAccount}
           />
+
+          <TurnsPanel range={data.range} />
 
           <BreakdownPanel range={data.range} />
 

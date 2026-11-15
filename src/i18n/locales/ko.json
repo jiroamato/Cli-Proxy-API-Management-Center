@@ -1609,6 +1609,28 @@
       "unpriced": "가격이 없는 모델의 토큰은 이 수치에서 제외됩니다: {{models}}.",
       "footnote": "위의 구독 가치는 실제 사용량을 요금제 가격과 비교합니다. 여기의 월간 추정은 매주 주간 한도를 모두 쓸 때의 가치이며, 한 달을 30/7주로 계산합니다. 모델 수치는 그 모델이 주도한 구간에서만 계산합니다. 한도의 {{percent}}% 미만에 근거한 수치는 근거 부족으로 표시합니다."
     },
+    "turns": {
+      "title": "턴과 스레드",
+      "hint": "턴은 완료된 응답 하나입니다. 스레드는 세션 하나입니다.",
+      "turns": "턴",
+      "threads": "스레드",
+      "per_turn": "턴당 API 비용",
+      "per_thread": "스레드당 API 비용",
+      "requests_per_turn": "턴당 요청 {{value}}개",
+      "thread_split": "메인 {{main}} · 서브에이전트 {{subagent}}",
+      "tokens_per_turn": "턴당 토큰 {{value}}",
+      "turns_per_thread": "스레드당 {{value}}턴",
+      "not_recorded": "기록 안 됨",
+      "no_data": "데이터 없음",
+      "no_requests": "요청 없음",
+      "unrecorded_notice": "이 범위의 어떤 요청도 응답이 끝난 이유를 기록하지 않아 턴을 셀 수 없습니다. Claude와 Codex 요청만 이를 기록하며, 턴을 세는 프록시 버전부터 기록합니다.",
+      "partial_notice": "이 범위의 성공한 요청 중 {{share}}({{value}}개)가 중지 이유를 기록하지 않아 턴으로 세지 않습니다. 이전 요청이거나 Claude와 Codex 외의 제공자 요청입니다.",
+      "months_label": "월별 턴과 스레드",
+      "month": "월",
+      "month_span": "{{from}}~{{to}}",
+      "partly_recorded": "일부만 기록됨",
+      "footnote": "서브에이전트 세션은 별도의 스레드로 셉니다. 턴당 수치는 중지 이유를 기록한 요청만 셉니다. 세션 ID를 보내지 않는 클라이언트는 첫 메시지로 묶이므로, 같은 내용으로 시작한 두 스레드는 하나로 셉니다."
+    },
     "error_title": "사용량을 불러오지 못했습니다",
     "disabled": {
       "title": "사용량 기록이 꺼져 있습니다",
