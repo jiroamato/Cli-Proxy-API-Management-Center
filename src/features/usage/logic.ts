@@ -93,9 +93,12 @@ export function bucketKeyToTime(key: string): number | null {
 export const emptyMetrics = (): UsageMetrics => ({
   requests: 0,
   failed: 0,
+  turns: 0,
   inputTokens: 0,
   cacheReadTokens: 0,
   cacheWriteTokens: 0,
+  cacheWrite5mTokens: 0,
+  cacheWrite1hTokens: 0,
   outputTokens: 0,
   reasoningTokens: 0,
   unclassifiedTokens: 0,
@@ -120,6 +123,10 @@ export function cacheHitRate(metrics: UsageMetrics): number | null {
   const input = metrics.inputTokens + metrics.cacheReadTokens + metrics.cacheWriteTokens;
   return input > 0 ? (metrics.cacheReadTokens / input) * 100 : null;
 }
+
+/** Cache writes reported without a 5m or 1h lifetime, as Codex reports them. */
+export const unsplitCacheWrites = (metrics: UsageMetrics): number =>
+  Math.max(0, metrics.cacheWriteTokens - metrics.cacheWrite5mTokens - metrics.cacheWrite1hTokens);
 
 /** Failed requests as a percentage; null with no requests. */
 export const errorRate = (metrics: UsageMetrics): number | null =>

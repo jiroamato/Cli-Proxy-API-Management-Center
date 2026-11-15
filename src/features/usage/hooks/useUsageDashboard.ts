@@ -16,6 +16,7 @@ import {
   type UsageRange,
   type UsageRangeId,
 } from '../logic';
+import { buildTurnFigures, type TurnFigures, type TurnsSource } from '../turns';
 
 /** Enough groups for any breakdown tab; the UI folds the tail itself. */
 export const BREAKDOWN_GROUP_LIMIT = 200;
@@ -214,6 +215,49 @@ export function useUsageBreakdown(
   }, [range, dimension]);
 
   return state.dimension === dimension ? state : LOADING_BREAKDOWN;
+}
+
+async function loadTurns(range: UsageRange): Promise<TurnsSource> {
+  const query = baseQuery(range);
+  const [total, main, months, monthStops] = await Promise.all([
+    usageStatsApi.getStats({ ...query, groupBy: [] }),
+    // An empty parent session id selects main sessions, leaving subagents out.
+    usageStatsApi.getStats({ ...query, groupBy: [], filters: { parent_session_id: '' } }),
+    usageStatsApi.getStats({ ...query, groupBy: ['month'] }),
+    usageStatsApi.getStats({ ...query, groupBy: ['month', 'stop_reason'] }),
+  ]);
+  return {
+    total: total.groups[0] ?? null,
+    main: main.groups[0] ?? null,
+    months: months.groups,
+    monthStops: monthStops.groups,
+  };
+}
+
+export interface TurnsState {
+  /** Figures of the last range that loaded; they stay on screen while a newer one loads. */
+  figures: TurnFigures | null;
+  error: string;
+}
+
+export function useTurns(range: UsageRange): TurnsState {
+  const [state, setState] = useState<TurnsState>({ figures: null, error: '' });
+
+  useEffect(() => {
+    let cancelled = false;
+    loadTurns(range)
+      .then((source) => {
+        if (!cancelled) setState({ figures: buildTurnFigures(source, range), error: '' });
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) setState({ figures: null, error: errorMessage(loadError) });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [range]);
+
+  return state;
 }
 
 export interface LimitValueState {

@@ -13,13 +13,19 @@ const USAGE_DISABLED_API_CODE = 'usage_statistics_disabled';
 const RECORDING_START_ATTEMPTS = 20;
 const RECORDING_START_POLL_MS = 250;
 
+/** Every field adds up across groups, so totals can be summed from any grouping. */
 export interface UsageMetrics {
   requests: number;
   failed: number;
+  /** Finished replies: non-failed requests that stopped with end_turn, max_tokens, or refusal. */
+  turns: number;
   /** Uncached input. The token buckets are mutually exclusive and sum to totalTokens. */
   inputTokens: number;
   cacheReadTokens: number;
   cacheWriteTokens: number;
+  /** Part of cacheWriteTokens. Only Anthropic reports the lifetime, so the two can sum to less. */
+  cacheWrite5mTokens: number;
+  cacheWrite1hTokens: number;
   /** Non-reasoning output. */
   outputTokens: number;
   reasoningTokens: number;
@@ -34,6 +40,11 @@ export interface UsageMetrics {
 
 export interface UsageGroup extends UsageMetrics {
   dimensions: Record<string, string>;
+  /**
+   * Distinct sessions in this group. Kept out of UsageMetrics because it does
+   * not add up: one session can span several groups.
+   */
+  sessions: number;
 }
 
 export interface UsageStatsResult {
@@ -107,9 +118,12 @@ const toStringRecord = (value: unknown): Record<string, string> => {
 export const normalizeUsageMetrics = (raw: Record<string, unknown>): UsageMetrics => ({
   requests: toNumber(raw.requests),
   failed: toNumber(raw.failed),
+  turns: toNumber(raw.turns),
   inputTokens: toNumber(raw.input_tokens),
   cacheReadTokens: toNumber(raw.cache_read_tokens),
   cacheWriteTokens: toNumber(raw.cache_write_tokens),
+  cacheWrite5mTokens: toNumber(raw.cache_write_5m_tokens),
+  cacheWrite1hTokens: toNumber(raw.cache_write_1h_tokens),
   outputTokens: toNumber(raw.output_tokens),
   reasoningTokens: toNumber(raw.reasoning_tokens),
   unclassifiedTokens: toNumber(raw.unclassified_tokens),
@@ -121,7 +135,11 @@ export const normalizeUsageMetrics = (raw: Record<string, unknown>): UsageMetric
 
 const normalizeGroup = (raw: unknown): UsageGroup | null => {
   if (!isRecord(raw)) return null;
-  return { dimensions: toStringRecord(raw.dimensions), ...normalizeUsageMetrics(raw) };
+  return {
+    dimensions: toStringRecord(raw.dimensions),
+    ...normalizeUsageMetrics(raw),
+    sessions: toNumber(raw.sessions),
+  };
 };
 
 export const normalizeUsageStats = (raw: unknown): UsageStatsResult => {
