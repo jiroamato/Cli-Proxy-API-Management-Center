@@ -61,6 +61,7 @@ export function useQuotaPools(input: UseQuotaPoolsInput) {
   const [samples, setSamples] = useState<SamplesState>(LOADING);
   const [enabling, setEnabling] = useState(false);
   const requestRef = useRef(0);
+  const sessionRef = useRef(session);
 
   const credentials = useMemo(() => {
     const byProvider: Partial<Record<PoolProvider, PoolCredential[]>> = {};
@@ -144,14 +145,23 @@ export function useQuotaPools(input: UseQuotaPoolsInput) {
     if (enabled) await load();
   }, [enabled, load]);
 
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
   const enableRecording = useCallback(async () => {
+    // A connection switched while the flag was being set gets nothing from this one.
+    const isCurrent = () => sessionRef.current === session;
     setEnabling(true);
     try {
-      await usageStatsApi.enableRecording();
+      const live = await usageStatsApi.enableRecording();
+      if (!isCurrent()) return;
+      if (!live) showNotification(t('usage.disabled.not_started'), 'warning');
       // The config page caches the full config; make it pick up the new flag.
       void fetchConfig(true).catch(() => undefined);
       await load();
     } catch (enableError) {
+      if (!isCurrent()) return;
       showNotification(
         enableError instanceof Error ? enableError.message : String(enableError),
         'error'
@@ -159,7 +169,7 @@ export function useQuotaPools(input: UseQuotaPoolsInput) {
     } finally {
       setEnabling(false);
     }
-  }, [fetchConfig, load, showNotification]);
+  }, [fetchConfig, load, session, showNotification, t]);
 
   return {
     groups,
