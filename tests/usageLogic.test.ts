@@ -27,6 +27,7 @@ const group = (dimensions: Record<string, string>, metrics: Partial<UsageMetrics
   ...emptyMetrics(),
   ...metrics,
   dimensions,
+  sessions: 0,
 });
 
 describe('resolveRange', () => {

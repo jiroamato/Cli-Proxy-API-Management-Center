@@ -93,9 +93,12 @@ export function bucketKeyToTime(key: string): number | null {
 export const emptyMetrics = (): UsageMetrics => ({
   requests: 0,
   failed: 0,
+  turns: 0,
   inputTokens: 0,
   cacheReadTokens: 0,
   cacheWriteTokens: 0,
+  cacheWrite5mTokens: 0,
+  cacheWrite1hTokens: 0,
   outputTokens: 0,
   reasoningTokens: 0,
   unclassifiedTokens: 0,
