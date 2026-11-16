@@ -1,6 +1,6 @@
 .wire {
-  /* 浅色纸面上纯 emerald 线对比不足，掺 12% 墨色压深一档；面积渐变仍用原色 */
-  --wire-color: var(--viz-success, #10b981);
+  /* The stroke mixes in 12% ink so the line holds contrast on light surfaces; the area fill keeps the pure color */
+  --wire-color: var(--viz-success, #d97757);
   --wire-stroke: color-mix(in srgb, var(--wire-color) 88%, var(--text-primary));
 
   position: relative;
