@@ -2,7 +2,7 @@ import { toneForSuccessRate, type MeterTone } from '../utils';
 import styles from './Meter.module.scss';
 
 const TONE_COLORS: Record<MeterTone, string> = {
-  good: 'var(--viz-success, #d97757)',
+  good: 'var(--viz-success, #10b981)',
   warning: 'var(--amber-color)',
   critical: 'var(--viz-failure, #c65746)',
   idle: 'var(--text-quaternary)',

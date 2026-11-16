@@ -1,7 +1,7 @@
 /**
  * Theme tokens: Graphite Black.
  * Black and off-white. Dark mode sits on true black with off-white text; light mode is off-white with black text.
- * Orange marks live, healthy traffic (success); red marks failures.
+ * Orange marks success in the UI chrome; charts keep a green, amber and red palette (--viz-*).
  */
 
 // Light theme (default)
@@ -81,10 +81,10 @@
   --glass-bg-secondary: color-mix(in srgb, var(--bg-secondary) 82%, transparent);
   --glass-border: color-mix(in srgb, var(--border-color) 60%, transparent);
 
-  // Chart colors share the semantic hues; dark mode re-steps them (see [data-theme='dark']).
-  // Orange only ever means live, successful traffic.
-  --viz-success: #c2603f;
-  --viz-failure: #dc3c3c;
+  // Charts keep their own traffic-light palette: green for healthy, amber (--quota-medium-color) for low,
+  // red for failures. Dark mode re-steps them (see [data-theme='dark']).
+  --viz-success: #10b981;
+  --viz-failure: #c65746;
 
   // Motion vocabulary: the built-in eases are too soft, so interaction feedback uses a strong
   // ease-out. Press 160ms / hover 200ms; UI motion stays under 300ms.
@@ -234,8 +234,8 @@
 
   --glass-border: color-mix(in srgb, var(--border-color) 55%, transparent);
 
-  --viz-success: #d97757;
-  --viz-failure: #e5484d;
+  --viz-success: #0fae78;
+  --viz-failure: #cf4b3a;
 }
 
 @media (max-width: 768px),
