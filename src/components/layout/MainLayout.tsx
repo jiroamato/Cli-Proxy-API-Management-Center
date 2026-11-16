@@ -32,7 +32,7 @@ import {
   IconSidebarUsage,
   IconChevronDown,
 } from '@/components/ui/icons';
-import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
+import { LOGO_SVG } from '@/assets/logo';
 import {
   useAuthStore,
   useConfigStore,
@@ -266,11 +266,11 @@ const THEME_CARDS: Array<{
     key: 'auto',
     labelKey: 'theme.auto',
     colors: {
-      bg: 'linear-gradient(135deg, #ffffff 0 50%, #111111 50% 100%)',
-      card: 'linear-gradient(135deg, #ffffff 0 50%, #1a1a1a 50% 100%)',
+      bg: 'linear-gradient(135deg, #f2f0eb 0 50%, #000000 50% 100%)',
+      card: 'linear-gradient(135deg, #f8f7f3 0 50%, #0b0b0b 50% 100%)',
       border: '#bdbdbd',
-      text: '#2d2a26',
-      textMuted: 'linear-gradient(135deg, #c9c9c9 0 50%, #5a5a5a 50% 100%)',
+      text: '#0a0a0a',
+      textMuted: 'linear-gradient(135deg, #b5b1aa 0 50%, #5b5a56 50% 100%)',
     },
   },
   {
@@ -279,31 +279,31 @@ const THEME_CARDS: Array<{
     colors: {
       bg: '#ffffff',
       card: '#ffffff',
-      border: '#e5e5e5',
-      text: '#2d2a26',
-      textMuted: '#a29c95',
+      border: '#ebebeb',
+      text: '#0a0a0a',
+      textMuted: '#8f8f8f',
     },
   },
   {
     key: 'light',
     labelKey: 'theme.light',
     colors: {
-      bg: '#faf9f5',
-      card: '#f0eee8',
-      border: '#e3e1db',
-      text: '#2d2a26',
-      textMuted: '#a29c95',
+      bg: '#f2f0eb',
+      card: '#f8f7f3',
+      border: '#e2dfd8',
+      text: '#0a0a0a',
+      textMuted: '#8a8680',
     },
   },
   {
     key: 'dark',
     labelKey: 'theme.dark',
     colors: {
-      bg: '#151412',
-      card: '#1d1b18',
-      border: '#3a3530',
-      text: '#f6f4f1',
-      textMuted: '#9c958d',
+      bg: '#000000',
+      card: '#0b0b0b',
+      border: '#1f1f1f',
+      text: '#ecebe6',
+      textMuted: '#8b8984',
     },
   },
 ];
@@ -1160,7 +1160,7 @@ export function MainLayout() {
         >
           <div className="sidebar-header">
             <div className="sidebar-brand" title={fullBrandName}>
-              <img src={INLINE_LOGO_JPEG} alt="CPAMC logo" className="sidebar-brand-logo" />
+              <img src={LOGO_SVG} alt="Logit Foundry logo" className="sidebar-brand-logo" />
               {showSidebarLabels && (
                 <span className="sidebar-brand-text">
                   <span className="sidebar-brand-title">{abbrBrandName}</span>

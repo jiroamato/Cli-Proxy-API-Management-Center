@@ -25,9 +25,8 @@ const getSystemTheme = (): ResolvedTheme => {
   return 'light';
 };
 
-const resolveAutoTheme = (): AppliedTheme => {
-  return getSystemTheme() === 'dark' ? 'dark' : 'white';
-};
+// Auto follows the system: off-white light theme or true black dark theme.
+const resolveAutoTheme = (): AppliedTheme => getSystemTheme();
 
 const normalizeResolvedTheme = (theme: AppliedTheme): ResolvedTheme => {
   return theme === 'dark' ? 'dark' : 'light';
