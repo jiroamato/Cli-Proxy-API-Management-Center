@@ -12,7 +12,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: min(440px, 55vh);
+  /* The confirmation's buttons share the modal body (at most 60-65vh), so the
+     list leaves room for the message and buttons and scrolls on its own. */
+  max-height: max(160px, min(440px, calc(60vh - 220px)));
   overflow-y: auto;
   /* Room for the focus ring, which the scroll container would clip. */
   padding: 4px;

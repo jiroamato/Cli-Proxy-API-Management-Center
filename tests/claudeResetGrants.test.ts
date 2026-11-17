@@ -427,5 +427,9 @@ test('live cedar_ember block parses and offers every grant, soonest expiry first
   const markup = renderToStaticMarkup(confirmation.message as ReactElement);
   expect(markup).toContain('One full limit reset (November 2026)');
   expect(markup).toContain('New model launch: one Fable reset for Max');
+  // Grants clear different limits, so each choice names them.
+  const text = markup.replace(/(<[^>]+>)+/g, '|');
+  expect(text).toContain('| · |Clears 7-day limit + 7-day Fable 5|Expires first|');
+  expect(text.match(/\|Clears 7-day Fable 5\|/g)).toHaveLength(3);
   expect(markup.match(/type="radio"/g)).toHaveLength(4);
 });

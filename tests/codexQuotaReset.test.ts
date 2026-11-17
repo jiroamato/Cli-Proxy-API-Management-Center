@@ -105,9 +105,33 @@ describe('Codex reset gateway cooldown', () => {
     await expect(reset()).rejects.toThrow('codex_quota.reset_cooldown_failed');
   });
 
+  test('does not redeem after connection changes during the credit list read', async () => {
+    const { calls } = setup({ code: 'reset' }, 200, {
+      credits: [credit('soon', '2099-11-30T00:00:00Z')],
+    });
+    const revision = spyOn(apiClient, 'getConnectionRevision')
+      .mockReturnValueOnce(1)
+      .mockReturnValue(2);
+    mocks.push(revision);
+    await expect(reset()).rejects.toThrow('The management connection changed.');
+    expect(calls).toEqual(['list']);
+  });
+
+  test('does not redeem a chosen credit after the connection changes', async () => {
+    const { calls } = setup({ code: 'reset' });
+    const revision = spyOn(apiClient, 'getConnectionRevision')
+      .mockReturnValueOnce(1)
+      .mockReturnValue(2);
+    mocks.push(revision);
+    await expect(reset('soon')).rejects.toThrow('The management connection changed.');
+    expect(calls).toEqual([]);
+  });
+
   test('does not clear after connection changes during redemption', async () => {
     const { clear } = setup({ code: 'reset' });
+    // Unchanged at the start and just before the POST, changed after it.
     const revision = spyOn(apiClient, 'getConnectionRevision')
+      .mockReturnValueOnce(1)
       .mockReturnValueOnce(1)
       .mockReturnValue(2);
     mocks.push(revision);

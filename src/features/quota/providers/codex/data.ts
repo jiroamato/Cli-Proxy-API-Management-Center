@@ -497,6 +497,7 @@ const createCodexRedeemRequestId = (): string => {
 const consumeCodexRateLimitResetCredit = async (
   file: AuthFileItem,
   t: TFunction,
+  assertConnection: () => void,
   creditId?: string
 ): Promise<string> => {
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
@@ -516,6 +517,8 @@ const consumeCodexRateLimitResetCredit = async (
       Date.now()
     )?.id;
 
+  // Never spend a credit on a connection that changed since the reset started.
+  assertConnection();
   const result = await apiCallApi.request({
     authIndex,
     method: 'POST',
@@ -543,7 +546,7 @@ const resetCodexQuota = async (
   creditId?: string
 ): Promise<CodexQuotaData> => {
   const assertConnection = guardConfigConnection();
-  const authIndex = await consumeCodexRateLimitResetCredit(file, t, creditId);
+  const authIndex = await consumeCodexRateLimitResetCredit(file, t, assertConnection, creditId);
   try {
     // Never clear a different connection's cooldown after awaiting redemption.
     assertConnection();

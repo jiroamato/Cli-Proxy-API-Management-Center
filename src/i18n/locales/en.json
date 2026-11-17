@@ -2487,6 +2487,7 @@
     "use": "Reset limits",
     "choose_message": "Spend one reset to clear eligible usage limits for “{{name}}”. Choose which grant to use; the one that expires first is selected.",
     "choose_button": "Use selected reset",
+    "clears": "Clears {{windows}}",
     "reset": "Usage limits reset.",
     "already_used": "This grant was already used.",
     "not_limited": "No reset: the account is not currently limited.",

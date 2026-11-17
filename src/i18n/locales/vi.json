@@ -2493,6 +2493,7 @@
     "use": "Đặt lại giới hạn",
     "choose_message": "Dùng một lần đặt lại để xóa các giới hạn sử dụng đủ điều kiện cho \"{{name}}\". Chọn khoản cấp sẽ dùng; khoản hết hạn sớm nhất được chọn sẵn.",
     "choose_button": "Dùng lần đặt lại đã chọn",
+    "clears": "Xóa {{windows}}",
     "reset": "Đã đặt lại giới hạn sử dụng.",
     "already_used": "Quyền này đã được sử dụng.",
     "not_limited": "Không đặt lại: tài khoản hiện không bị giới hạn.",

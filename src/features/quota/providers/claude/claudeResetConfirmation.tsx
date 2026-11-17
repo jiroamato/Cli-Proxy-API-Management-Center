@@ -1,8 +1,18 @@
 import type { TFunction } from 'i18next';
-import type { AnthropicResetGrantStatus } from '@/services/api/claudeResetGrants';
+import type {
+  AnthropicResetGrantStatus,
+  AnthropicResetWindow,
+} from '@/services/api/claudeResetGrants';
 import { parseIsoToMs } from '@/utils/quota';
 import { ResetChoicePicker } from '../../components/ResetChoicePicker';
 import { sortResetGrants } from './selectResetGrant';
+
+/** The quota card's names for the limits a grant clears. */
+const WINDOW_LABEL_KEYS: Record<AnthropicResetWindow, string> = {
+  five_hour: 'claude_quota.five_hour',
+  seven_day: 'claude_quota.seven_day',
+  seven_day_overage_included: 'claude_quota.seven_day_fable',
+};
 
 /**
  * Confirmation content for spending a Claude reset grant: the usable grants,
@@ -34,7 +44,19 @@ export function buildClaudeResetConfirmation(
             t('claude_reset.grant_number', {
               index: listed.findIndex((item) => item.id === grant.id) + 1,
             }),
-          details: [t('claude_reset.count', { left: grant.resetsLeft, total: grant.resetsTotal })],
+          details: [
+            ...(grant.clears.length > 0
+              ? [
+                  t('claude_reset.clears', {
+                    windows: grant.clears.map((window) => t(WINDOW_LABEL_KEYS[window])).join(' + '),
+                  }),
+                ]
+              : []),
+            // Every listed grant has a reset left, so the count only helps multi-use grants.
+            ...(grant.resetsTotal > 1
+              ? [t('claude_reset.count', { left: grant.resetsLeft, total: grant.resetsTotal })]
+              : []),
+          ],
         }))}
         now={now}
         onChange={(id) => {

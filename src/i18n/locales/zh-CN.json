@@ -2486,6 +2486,7 @@
     "use": "重置额度",
     "choose_message": "将消耗一次重置来清除“{{name}}”的可用用量限制。请选择要使用的授予，默认选中最先过期的一个。",
     "choose_button": "使用所选重置",
+    "clears": "清除 {{windows}}",
     "reset": "已重置用量限制。",
     "already_used": "该权益已使用。",
     "not_limited": "未重置：账户当前未达到限制。",
