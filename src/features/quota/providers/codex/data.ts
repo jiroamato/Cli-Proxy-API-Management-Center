@@ -27,6 +27,7 @@ import {
   normalizePlanType,
   normalizeStringValue,
   normalizeCodexResetCreditsPayload,
+  selectCodexResetCredit,
   parseCodexUsagePayload,
   parseOffsetSecondsToMs,
   periodHoursFromSeconds,
@@ -504,6 +505,10 @@ const consumeCodexRateLimitResetCredit = async (
   }
 
   const requestHeader = buildCodexRequestHeader(file);
+  // Without a credit_id the backend picks the credit, which may not be the one
+  // expiring first. If the list is unavailable, still redeem and let it pick.
+  const { credits } = await fetchCodexResetCredits(authIndex, requestHeader, t);
+  const credit = selectCodexResetCredit(credits, Date.now());
 
   const result = await apiCallApi.request({
     authIndex,
@@ -512,6 +517,7 @@ const consumeCodexRateLimitResetCredit = async (
     header: requestHeader,
     data: JSON.stringify({
       redeem_request_id: createCodexRedeemRequestId(),
+      ...(credit ? { credit_id: credit.id } : {}),
     }),
   });
 

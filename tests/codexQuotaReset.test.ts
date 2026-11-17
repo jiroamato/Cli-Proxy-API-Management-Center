@@ -2,7 +2,11 @@ import { afterEach, describe, expect, spyOn, test } from 'bun:test';
 import type { TFunction } from 'i18next';
 import { CODEX_CONFIG } from '@/features/quota/providers/codex/data';
 import { apiCallApi, authFilesApi, apiClient } from '@/services/api';
-import { CODEX_RATE_LIMIT_RESET_CREDITS_CONSUME_URL } from '@/utils/quota';
+import {
+  CODEX_RATE_LIMIT_RESET_CREDITS_CONSUME_URL,
+  CODEX_RATE_LIMIT_RESET_CREDITS_URL,
+  selectCodexResetCredit,
+} from '@/utils/quota';
 
 const t = ((key: string) => key) as TFunction;
 const file = { name: 'codex-test.json', auth_index: 'test-index', type: 'codex' };
@@ -18,12 +22,29 @@ afterEach(() => {
   for (const mock of mocks.splice(0)) mock.mockRestore();
 });
 
-function setup(body: unknown, statusCode = 200) {
+const credit = (id: string, expiresAt: string) => ({
+  id,
+  reset_type: 'codex_rate_limits',
+  status: 'available',
+  granted_at: '2026-11-01T00:00:00Z',
+  expires_at: expiresAt,
+});
+
+function setup(body: unknown, statusCode = 200, credits: unknown = { credits: [] }) {
   const calls: string[] = [];
+  const consumed: unknown[] = [];
+  let listed = false;
   const request = spyOn(apiCallApi, 'request').mockImplementation(async (payload) => {
     if (payload.url === CODEX_RATE_LIMIT_RESET_CREDITS_CONSUME_URL) {
       calls.push('consume');
+      consumed.push(JSON.parse(String(payload.data)));
       return response(body, statusCode);
+    }
+    if (payload.url === CODEX_RATE_LIMIT_RESET_CREDITS_URL && !listed) {
+      // The first list read picks the credit; later ones refresh the card.
+      listed = true;
+      calls.push('list');
+      return response(credits);
     }
     calls.push('read');
     return response({});
@@ -33,7 +54,7 @@ function setup(body: unknown, statusCode = 200) {
     return { status: 'ok', auth_index: 'test-index', models: [] };
   });
   mocks.push(request, clear);
-  return { calls, request, clear };
+  return { calls, consumed, request, clear };
 }
 
 describe('Codex reset gateway cooldown', () => {
@@ -42,7 +63,7 @@ describe('Codex reset gateway cooldown', () => {
     async (code) => {
       const { calls, clear } = setup({ code, windows_reset: 0 });
       await reset();
-      expect(calls.slice(0, 3)).toEqual(['consume', 'clear', 'read']);
+      expect(calls.slice(0, 4)).toEqual(['list', 'consume', 'clear', 'read']);
       expect(clear).toHaveBeenCalledTimes(1);
       expect(clear).toHaveBeenCalledWith('test-index');
     }
@@ -51,13 +72,13 @@ describe('Codex reset gateway cooldown', () => {
   test.each(['no_credit', 'nothing_to_reset', 'unknown'])('does not clear for %s', async (code) => {
     const { calls } = setup({ code });
     await expect(reset()).rejects.toThrow('codex_quota.reset_not_confirmed');
-    expect(calls).toEqual(['consume']);
+    expect(calls).toEqual(['list', 'consume']);
   });
 
   test('does not clear on HTTP failure', async () => {
     const { calls } = setup({ code: 'reset' }, 503);
     await expect(reset()).rejects.toThrow();
-    expect(calls).toEqual(['consume']);
+    expect(calls).toEqual(['list', 'consume']);
   });
 
   test('does not clear on transport failure', async () => {
@@ -71,7 +92,7 @@ describe('Codex reset gateway cooldown', () => {
     const { request, clear } = setup({ code: 'reset' });
     clear.mockRejectedValue(new Error('offline'));
     await expect(reset()).rejects.toThrow('codex_quota.reset_cooldown_failed');
-    expect(request).toHaveBeenCalledTimes(1);
+    expect(request).toHaveBeenCalledTimes(2);
   });
 
   test('rejects mismatched cooldown acknowledgements', async () => {
@@ -88,5 +109,52 @@ describe('Codex reset gateway cooldown', () => {
     mocks.push(revision);
     await expect(reset()).rejects.toThrow('codex_quota.reset_cooldown_failed');
     expect(clear).not.toHaveBeenCalled();
+  });
+});
+
+describe('Codex reset credit choice', () => {
+  test('redeems the credit that expires first, not the newest', async () => {
+    const { consumed } = setup({ code: 'reset' }, 200, {
+      credits: [credit('late', '2099-12-16T00:00:00Z'), credit('soon', '2099-11-30T00:00:00Z')],
+    });
+    await reset();
+    expect(consumed).toEqual([{ redeem_request_id: expect.any(String), credit_id: 'soon' }]);
+  });
+
+  test('lets the backend pick when the credit list cannot be read', async () => {
+    const { calls, consumed } = setup({ code: 'reset' }, 200, 'not json');
+    await reset();
+    expect(calls.slice(0, 2)).toEqual(['list', 'consume']);
+    expect(consumed).toEqual([{ redeem_request_id: expect.any(String) }]);
+  });
+});
+
+describe('selectCodexResetCredit', () => {
+  const now = Date.parse('2026-11-16T00:00:00Z');
+  const entry = (id: string, expiresAt: string) => ({
+    id,
+    status: 'available',
+    grantedAt: '',
+    expiresAt,
+  });
+
+  test('orders by expiry, then ID', () => {
+    const credits = [
+      entry('c', '2026-12-16T00:00:00Z'),
+      entry('b', '2026-11-30T00:00:00Z'),
+      entry('a', '2026-11-30T00:00:00Z'),
+    ];
+    expect(selectCodexResetCredit(credits, now)?.id).toBe('a');
+  });
+
+  test('skips expired, unparseable, and ID-less credits', () => {
+    const credits = [
+      entry('expired', '2026-11-15T00:00:00Z'),
+      entry('garbled', 'soon'),
+      entry('', '2026-11-20T00:00:00Z'),
+      entry('valid', '2026-12-16T00:00:00Z'),
+    ];
+    expect(selectCodexResetCredit(credits, now)?.id).toBe('valid');
+    expect(selectCodexResetCredit(credits.slice(0, 3), now)).toBeUndefined();
   });
 });
