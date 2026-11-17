@@ -1,3 +1,5 @@
+import { parseIsoToMs } from './resetInstants';
+
 export interface CodexResetCredit {
   id: string;
   status: string;
@@ -115,3 +117,32 @@ export const normalizeCodexResetCreditsPayload = (payload: unknown): CodexResetC
     invalidPayload: !hasExpectedShape,
   };
 };
+
+export interface RedeemableCodexResetCredit extends CodexResetCredit {
+  expiresAtMs: number;
+}
+
+/**
+ * Credits that can be redeemed by ID, soonest expiry first; ties fall back to
+ * ID order. Credits without an ID, or already expired, are skipped.
+ */
+export const sortCodexResetCredits = (
+  credits: CodexResetCredit[],
+  now: number
+): RedeemableCodexResetCredit[] =>
+  credits
+    .map((credit) => ({ ...credit, expiresAtMs: parseIsoToMs(credit.expiresAt) }))
+    .filter(
+      (credit): credit is RedeemableCodexResetCredit =>
+        Boolean(credit.id) && credit.expiresAtMs !== null && credit.expiresAtMs > now
+    )
+    .sort((a, b) => a.expiresAtMs - b.expiresAtMs || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+
+/**
+ * The default credit to redeem: the one that expires soonest, so a
+ * later-expiring credit is never spent while an earlier one lapses unused.
+ */
+export const selectCodexResetCredit = (
+  credits: CodexResetCredit[],
+  now: number
+): RedeemableCodexResetCredit | undefined => sortCodexResetCredits(credits, now)[0];

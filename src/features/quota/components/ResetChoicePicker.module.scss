@@ -1,0 +1,113 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message {
+  margin: 0;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* The confirmation's buttons share the modal body (at most 60-65vh), so the
+     list leaves room for the message and buttons and scrolls on its own. */
+  max-height: max(160px, min(440px, calc(60vh - 220px)));
+  overflow-y: auto;
+  /* Room for the focus ring, which the scroll container would clip. */
+  padding: 4px;
+  margin: -4px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-hover) var(--ease-out-strong),
+    background-color var(--dur-hover) var(--ease-out-strong);
+
+  input {
+    margin: 0;
+    flex-shrink: 0;
+    accent-color: var(--primary-color);
+
+    /* The option card carries the focus ring. */
+    &:focus-visible {
+      outline: none;
+    }
+  }
+
+  &:hover {
+    border-color: var(--border-hover);
+  }
+
+  &:has(input:focus-visible) {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+}
+
+.optionActive {
+  border-color: var(--primary-color);
+  background: var(--primary-10);
+
+  &:hover {
+    border-color: var(--primary-color);
+  }
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.date {
+  font-size: 14px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+
+.details {
+  font-size: 12px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+/* Lines break between facts, never inside one. */
+.segment {
+  white-space: nowrap;
+}
+
+.badge {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--warning-border);
+  background-color: var(--warning-bg);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}

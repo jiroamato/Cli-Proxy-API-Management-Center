@@ -12,6 +12,7 @@ import { apiClient } from '@/services/api/client';
 import { LegacyBackendError, probeLegacyBackend } from '@/services/api/legacyBackendProbe';
 import { useConfigStore } from './useConfigStore';
 import { useModelsStore } from './useModelsStore';
+import { useNotificationStore } from './useNotificationStore';
 import { useQuotaStore } from './useQuotaStore';
 import { detectApiBaseFromLocation, normalizeApiBase } from '@/utils/connection';
 
@@ -106,6 +107,8 @@ export const useAuthStore = create<AuthStoreState>()(
           useConfigStore.getState().clearCache();
           useModelsStore.getState().clearCache();
           useQuotaStore.getState().clearQuotaCache();
+          // A pending confirmation belongs to the previous connection.
+          useNotificationStore.getState().hideConfirmation();
 
           // 配置 API 客户端
           apiClient.setConfig({
@@ -152,6 +155,8 @@ export const useAuthStore = create<AuthStoreState>()(
       logout: () => {
         restoreSessionPromise = null;
         apiClient.setConfig({ apiBase: '', managementKey: '' });
+        // A pending confirmation belongs to the previous connection.
+        useNotificationStore.getState().hideConfirmation();
         useConfigStore.getState().clearCache();
         useModelsStore.getState().clearCache();
         useQuotaStore.getState().clearQuotaCache();

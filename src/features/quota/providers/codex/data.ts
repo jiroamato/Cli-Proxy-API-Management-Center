@@ -27,6 +27,7 @@ import {
   normalizePlanType,
   normalizeStringValue,
   normalizeCodexResetCreditsPayload,
+  selectCodexResetCredit,
   parseCodexUsagePayload,
   parseOffsetSecondsToMs,
   periodHoursFromSeconds,
@@ -495,7 +496,9 @@ const createCodexRedeemRequestId = (): string => {
 
 const consumeCodexRateLimitResetCredit = async (
   file: AuthFileItem,
-  t: TFunction
+  t: TFunction,
+  assertConnection: () => void,
+  creditId?: string
 ): Promise<string> => {
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
@@ -504,7 +507,18 @@ const consumeCodexRateLimitResetCredit = async (
   }
 
   const requestHeader = buildCodexRequestHeader(file);
+  // Without a credit_id the backend picks the credit, which may not be the one
+  // expiring first. With no chosen credit, default to the soonest expiry; if
+  // the list is unavailable, still redeem and let the backend pick.
+  const chosenId =
+    creditId ??
+    selectCodexResetCredit(
+      (await fetchCodexResetCredits(authIndex, requestHeader, t)).credits,
+      Date.now()
+    )?.id;
 
+  // Never spend a credit on a connection that changed since the reset started.
+  assertConnection();
   const result = await apiCallApi.request({
     authIndex,
     method: 'POST',
@@ -512,6 +526,7 @@ const consumeCodexRateLimitResetCredit = async (
     header: requestHeader,
     data: JSON.stringify({
       redeem_request_id: createCodexRedeemRequestId(),
+      ...(chosenId ? { credit_id: chosenId } : {}),
     }),
   });
 
@@ -525,9 +540,13 @@ const consumeCodexRateLimitResetCredit = async (
   return authIndex;
 };
 
-const resetCodexQuota = async (file: AuthFileItem, t: TFunction): Promise<CodexQuotaData> => {
+const resetCodexQuota = async (
+  file: AuthFileItem,
+  t: TFunction,
+  creditId?: string
+): Promise<CodexQuotaData> => {
   const assertConnection = guardConfigConnection();
-  const authIndex = await consumeCodexRateLimitResetCredit(file, t);
+  const authIndex = await consumeCodexRateLimitResetCredit(file, t, assertConnection, creditId);
   try {
     // Never clear a different connection's cooldown after awaiting redemption.
     assertConnection();

@@ -1,4 +1,12 @@
-import { selectResetGrant } from '../src/features/quota/providers/claude/selectResetGrant';
+import {
+  selectResetGrant,
+  sortResetGrants,
+} from '../src/features/quota/providers/claude/selectResetGrant';
+import { buildClaudeResetConfirmation } from '../src/features/quota/providers/claude/claudeResetConfirmation';
+import i18n from '@/i18n';
+import { renderToStaticMarkup } from 'react-dom/server';
+import type { ReactElement } from 'react';
+import { LIVE_CEDAR_EMBER } from './fixtures/claudeResetGrants';
 
 import { afterEach, describe, expect, test } from 'bun:test';
 import {
@@ -301,7 +309,8 @@ test('all grant messages and confirmation are translated in four locales', async
   );
   for (const locale of locales) {
     expect(Object.keys(locale).sort()).toEqual(Object.keys(locales[0]).sort());
-    expect(locale.confirm_text).toContain('{{name}}');
+    expect(locale.choose_message).toContain('{{name}}');
+    expect(typeof locale.choose_button).toBe('string');
     expect(locale.retry_confirm).toContain('{{name}}');
     expect(typeof locale.remaining).toBe('string');
     expect(locale.count).toContain('{{left}}');
@@ -317,13 +326,18 @@ test('all grant messages and confirmation are translated in four locales', async
   }
 });
 
-test('card selection prefers usable recommendation and has deterministic fallback', () => {
+test('card selection prefers the soonest expiry, then the recommendation, then ID', () => {
   const base = status();
   const a = { ...base.grants[0], id: 'a' };
   const b = { ...a, id: 'b' };
   const multiple = { ...base, grants: [b, a], nextGrantId: 'b' };
   expect(selectResetGrant(multiple, 0)?.id).toBe('b');
   expect(selectResetGrant({ ...multiple, nextGrantId: null }, 0)?.id).toBe('a');
+  const soon = { ...a, id: 'soon', endsAt: new Date(14 * 86400_000).toISOString() };
+  const late = { ...a, id: 'late', endsAt: new Date(30 * 86400_000).toISOString() };
+  const dated = { ...base, grants: [late, b, soon], nextGrantId: 'late' };
+  expect(sortResetGrants(dated, 0).map((grant) => grant.id)).toEqual(['soon', 'late', 'b']);
+  expect(selectResetGrant(dated, 0)?.id).toBe('soon');
   expect(selectResetGrant({ ...multiple, grants: [a, { ...b, paused: true }] }, 0)?.id).toBe('a');
   expect(selectResetGrant({ ...multiple, eligible: false }, 0)).toBeUndefined();
   expect(selectResetGrant({ ...multiple, atLimit: false }, 0)).toBeUndefined();
@@ -351,7 +365,71 @@ test('Claude card uses Codex count and action styles and shared confirmation, no
   expect(card).toContain('disabled={claudeReset.blocked}');
   expect(card).toContain('onClick={claudeReset.confirm}');
   expect(hook).toContain('showConfirmation({');
-  expect(hook).toContain("pending ? 'claude_reset.retry_confirm'");
+  // A retry keeps the ambiguous claim's grant; only a fresh claim offers the picker.
+  expect(hook).toContain("message: t('claude_reset.retry_confirm'");
+  expect(hook).toContain('grantId: (): string | undefined => pending.grantId');
+  expect(hook).toContain('buildClaudeResetConfirmation(t, file.name, status, now)');
   expect(hook).not.toContain('<Modal');
-  expect(hook).not.toContain('status.grants.map');
+});
+
+test('reset confirmation lists usable grants soonest first and reads the choice', async () => {
+  await i18n.changeLanguage('en');
+  const now = Date.parse('2026-11-16T00:00:00Z');
+  const parsed = parseAnthropicResetGrantStatus({
+    ...block,
+    next_grant_id: 'late',
+    grants: [
+      { ...grant, id: 'late', label: 'Launch', ends_at: '2026-12-16T00:00:00Z' },
+      { ...grant, id: 'soon', resets_left: 1, ends_at: '2026-11-30T00:00:00Z' },
+      { ...grant, id: 'paused', paused: true, ends_at: '2026-11-20T00:00:00Z' },
+      { ...grant, id: 'open' },
+    ],
+  })!;
+  const confirmation = buildClaudeResetConfirmation(i18n.t, 'claude.json', parsed, now);
+  expect(confirmation.grantId()).toBe('soon');
+  expect(confirmation.confirmText).toBe('Use reset');
+  const markup = renderToStaticMarkup(confirmation.message as ReactElement);
+  const format = (iso: string) =>
+    new Date(iso).toLocaleString('en', { dateStyle: 'medium', timeStyle: 'short' });
+  const soonAt = markup.indexOf(`Expires ${format('2026-11-30T00:00:00Z')}`);
+  const lateAt = markup.indexOf(`Expires ${format('2026-12-16T00:00:00Z')}`);
+  const openAt = markup.indexOf('No expiry');
+  expect(soonAt).toBeGreaterThan(-1);
+  expect(lateAt).toBeGreaterThan(soonAt);
+  expect(openAt).toBeGreaterThan(lateAt);
+  expect(markup).not.toContain('value="paused"');
+  // The label leads each choice; unlabeled grants keep the card's numbering,
+  // which also counts the paused grant.
+  const text = markup.replace(/(<[^>]+>)+/g, '|');
+  expect(text).toContain(
+    `|Grant 2|Expires ${format('2026-11-30T00:00:00Z')}| · |in 14 days| · |1 / 2 resets remaining|`
+  );
+  expect(text).toContain(
+    `|Launch|Expires ${format('2026-12-16T00:00:00Z')}| · |in 30 days| · |2 / 2 resets remaining|`
+  );
+  expect(markup).toContain('Expires first');
+  expect(markup).toMatch(/checked="" value="soon"/);
+});
+
+test('live cedar_ember block parses and offers every grant, soonest expiry first', async () => {
+  await i18n.changeLanguage('en');
+  const parsed = parseAnthropicResetGrantStatus(LIVE_CEDAR_EMBER);
+  expect(parsed).not.toBeNull();
+  const now = Date.parse('2026-11-16T12:00:00Z');
+  expect(sortResetGrants(parsed!, now).map((grant) => grant.id)).toEqual([
+    'full-reset-2611',
+    'launch-2610-fable',
+    'launch-2610-fable-12mo',
+    'launch-2610-fable-6mo',
+  ]);
+  const confirmation = buildClaudeResetConfirmation(i18n.t, 'claude.json', parsed!, now);
+  expect(confirmation.grantId()).toBe('full-reset-2611');
+  const markup = renderToStaticMarkup(confirmation.message as ReactElement);
+  expect(markup).toContain('One full limit reset (November 2026)');
+  expect(markup).toContain('New model launch: one Fable reset for Max');
+  // Grants clear different limits, so each choice names them.
+  const text = markup.replace(/(<[^>]+>)+/g, '|');
+  expect(text).toContain('| · |Clears 7-day limit + 7-day Fable 5|Expires first|');
+  expect(text.match(/\|Clears 7-day Fable 5\|/g)).toHaveLength(3);
+  expect(markup.match(/type="radio"/g)).toHaveLength(4);
 });
