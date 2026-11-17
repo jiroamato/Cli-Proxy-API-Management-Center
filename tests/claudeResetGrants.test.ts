@@ -387,7 +387,7 @@ test('reset confirmation lists usable grants soonest first and reads the choice'
   })!;
   const confirmation = buildClaudeResetConfirmation(i18n.t, 'claude.json', parsed, now);
   expect(confirmation.grantId()).toBe('soon');
-  expect(confirmation.confirmText).toBe('Use selected reset');
+  expect(confirmation.confirmText).toBe('Use reset');
   const markup = renderToStaticMarkup(confirmation.message as ReactElement);
   const format = (iso: string) =>
     new Date(iso).toLocaleString('en', { dateStyle: 'medium', timeStyle: 'short' });

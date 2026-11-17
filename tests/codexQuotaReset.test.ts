@@ -223,7 +223,7 @@ describe('Codex reset confirmation', () => {
       now
     );
     expect(confirmation.creditId()).toBe('soon');
-    expect(confirmation.confirmText).toBe('Use selected reset');
+    expect(confirmation.confirmText).toBe('Use reset');
     expect(isValidElement(confirmation.message)).toBe(true);
 
     const markup = renderToStaticMarkup(confirmation.message as React.ReactElement);
