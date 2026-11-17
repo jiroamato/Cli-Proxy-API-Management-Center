@@ -1,5 +1,9 @@
-import { afterEach, describe, expect, spyOn, test } from 'bun:test';
+import { afterEach, beforeAll, describe, expect, spyOn, test } from 'bun:test';
+import { isValidElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import type { TFunction } from 'i18next';
+import i18n from '@/i18n';
+import { buildCodexResetConfirmation } from '@/features/quota/providers/codex/codexResetConfirmation';
 import { CODEX_CONFIG } from '@/features/quota/providers/codex/data';
 import { apiCallApi, authFilesApi, apiClient } from '@/services/api';
 import {
@@ -16,7 +20,7 @@ const response = (body: unknown, statusCode = 200) => ({
   bodyText: JSON.stringify(body),
   header: {},
 });
-const reset = () => CODEX_CONFIG.resetQuota!(file, t);
+const reset = (creditId?: string) => CODEX_CONFIG.resetQuota!(file, t, creditId);
 const mocks: Array<{ mockRestore(): void }> = [];
 afterEach(() => {
   for (const mock of mocks.splice(0)) mock.mockRestore();
@@ -121,6 +125,15 @@ describe('Codex reset credit choice', () => {
     expect(consumed).toEqual([{ redeem_request_id: expect.any(String), credit_id: 'soon' }]);
   });
 
+  test('redeems the credit the operator chose, without rereading the list', async () => {
+    const { calls, consumed } = setup({ code: 'reset' }, 200, {
+      credits: [credit('soon', '2099-11-30T00:00:00Z'), credit('late', '2099-12-16T00:00:00Z')],
+    });
+    await reset('late');
+    expect(calls.slice(0, 2)).toEqual(['consume', 'clear']);
+    expect(consumed).toEqual([{ redeem_request_id: expect.any(String), credit_id: 'late' }]);
+  });
+
   test('lets the backend pick when the credit list cannot be read', async () => {
     const { calls, consumed } = setup({ code: 'reset' }, 200, 'not json');
     await reset();
@@ -156,5 +169,64 @@ describe('selectCodexResetCredit', () => {
     ];
     expect(selectCodexResetCredit(credits, now)?.id).toBe('valid');
     expect(selectCodexResetCredit(credits.slice(0, 3), now)).toBeUndefined();
+  });
+});
+
+describe('Codex reset confirmation', () => {
+  const now = Date.parse('2026-11-16T00:00:00Z');
+  const stored = (id: string, expiresAt: string) => ({
+    id,
+    status: 'available',
+    grantedAt: '',
+    expiresAt,
+  });
+  const quota = (credits: ReturnType<typeof stored>[]) => ({
+    status: 'success' as const,
+    rateLimitResetCredits: credits,
+  });
+
+  beforeAll(async () => {
+    await i18n.changeLanguage('en');
+  });
+
+  test('lists credits soonest first with expiry dates and preselects the first', () => {
+    const late = '2026-12-16T00:00:00Z';
+    const soon = '2026-11-30T00:00:00Z';
+    const confirmation = buildCodexResetConfirmation(
+      i18n.t,
+      'codex-test.json',
+      quota([stored('late', late), stored('soon', soon)]),
+      now
+    );
+    expect(confirmation.creditId()).toBe('soon');
+    expect(confirmation.confirmText).toBe('Use selected reset');
+    expect(isValidElement(confirmation.message)).toBe(true);
+
+    const markup = renderToStaticMarkup(confirmation.message as React.ReactElement);
+    const format = (iso: string) =>
+      new Date(iso).toLocaleString('en', { dateStyle: 'medium', timeStyle: 'short' });
+    const soonAt = markup.indexOf(`Expires ${format(soon)}`);
+    const lateAt = markup.indexOf(`Expires ${format(late)}`);
+    expect(soonAt).toBeGreaterThan(-1);
+    expect(lateAt).toBeGreaterThan(soonAt);
+    expect(markup).toContain('in 14 days');
+    expect(markup).toContain('in 30 days');
+    expect(markup).toContain('Expires first');
+    expect(markup).toMatch(/checked="" value="soon"/);
+    expect(markup).not.toMatch(/checked="" value="late"/);
+    expect(markup).toContain('role="radiogroup"');
+  });
+
+  test('keeps the plain confirmation when no credit can be chosen', () => {
+    const confirmation = buildCodexResetConfirmation(
+      i18n.t,
+      'codex-test.json',
+      quota([stored('', '2026-11-30T00:00:00Z')]),
+      now
+    );
+    expect(confirmation.message).toBe(
+      i18n.t('codex_quota.reset_confirm_message', { name: 'codex-test.json' })
+    );
+    expect(confirmation.creditId()).toBeUndefined();
   });
 });

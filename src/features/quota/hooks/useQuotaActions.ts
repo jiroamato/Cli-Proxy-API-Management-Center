@@ -15,6 +15,7 @@ import type { AuthFileItem } from '@/types';
 import { getStatusFromError } from '@/utils/quota';
 import { getQuotaCacheKey } from '@/utils/quota/identity';
 import { enrichQuotaInBackground } from '../quotaEnrichment';
+import { buildCodexResetConfirmation } from '../providers/codex/codexResetConfirmation';
 import { getQuotaMap, getQuotaSetter, type QuotaAdapter, type QuotaCardState } from '../providers';
 
 const getQuotaState = (adapter: QuotaAdapter, file: AuthFileItem): QuotaCardState | undefined =>
@@ -75,20 +76,22 @@ export function useQuotaActions(disableControls: boolean) {
       if (!resetQuotaFn) return;
       if (disableControls || file.disabled) return;
       const cacheKey = getQuotaCacheKey(file);
-      if (getQuotaState(adapter, file)?.status === 'loading') return;
+      const quota = getQuotaState(adapter, file);
+      if (quota?.status === 'loading') return;
       if (resettingQuotaName === cacheKey) return;
+      const confirmation = buildCodexResetConfirmation(t, file.name, quota, Date.now());
 
       showConfirmation({
         title: t('codex_quota.reset_confirm_title'),
-        message: t('codex_quota.reset_confirm_message', { name: file.name }),
-        confirmText: t('codex_quota.reset_confirm_button'),
+        message: confirmation.message,
+        confirmText: confirmation.confirmText,
         variant: 'primary',
         onConfirm: async () => {
           const cacheGeneration = captureQuotaCacheGeneration(file.name);
           const setQuota = getQuotaSetter(adapter);
           setResettingQuotaName(cacheKey);
           try {
-            const data = await resetQuotaFn(file, t);
+            const data = await resetQuotaFn(file, t, confirmation.creditId());
             commitIfQuotaCacheCurrent(cacheGeneration, () => {
               setQuota((prev) => ({
                 ...prev,

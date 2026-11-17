@@ -496,7 +496,8 @@ const createCodexRedeemRequestId = (): string => {
 
 const consumeCodexRateLimitResetCredit = async (
   file: AuthFileItem,
-  t: TFunction
+  t: TFunction,
+  creditId?: string
 ): Promise<string> => {
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
@@ -506,9 +507,14 @@ const consumeCodexRateLimitResetCredit = async (
 
   const requestHeader = buildCodexRequestHeader(file);
   // Without a credit_id the backend picks the credit, which may not be the one
-  // expiring first. If the list is unavailable, still redeem and let it pick.
-  const { credits } = await fetchCodexResetCredits(authIndex, requestHeader, t);
-  const credit = selectCodexResetCredit(credits, Date.now());
+  // expiring first. With no chosen credit, default to the soonest expiry; if
+  // the list is unavailable, still redeem and let the backend pick.
+  const chosenId =
+    creditId ??
+    selectCodexResetCredit(
+      (await fetchCodexResetCredits(authIndex, requestHeader, t)).credits,
+      Date.now()
+    )?.id;
 
   const result = await apiCallApi.request({
     authIndex,
@@ -517,7 +523,7 @@ const consumeCodexRateLimitResetCredit = async (
     header: requestHeader,
     data: JSON.stringify({
       redeem_request_id: createCodexRedeemRequestId(),
-      ...(credit ? { credit_id: credit.id } : {}),
+      ...(chosenId ? { credit_id: chosenId } : {}),
     }),
   });
 
@@ -531,9 +537,13 @@ const consumeCodexRateLimitResetCredit = async (
   return authIndex;
 };
 
-const resetCodexQuota = async (file: AuthFileItem, t: TFunction): Promise<CodexQuotaData> => {
+const resetCodexQuota = async (
+  file: AuthFileItem,
+  t: TFunction,
+  creditId?: string
+): Promise<CodexQuotaData> => {
   const assertConnection = guardConfigConnection();
-  const authIndex = await consumeCodexRateLimitResetCredit(file, t);
+  const authIndex = await consumeCodexRateLimitResetCredit(file, t, creditId);
   try {
     // Never clear a different connection's cooldown after awaiting redemption.
     assertConnection();

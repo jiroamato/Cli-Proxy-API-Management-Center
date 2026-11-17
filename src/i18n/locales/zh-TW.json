@@ -536,6 +536,11 @@
     "reset_confirm_title": "重置 Codex 配額",
     "reset_confirm_message": "將消耗 1 次主動重置次數來重置「{{name}}」的 Codex 配額。是否繼續？",
     "reset_confirm_button": "確認重置",
+    "reset_choose_message": "選擇要為「{{name}}」使用的手動重置。預設選取最先到期的一個。",
+    "reset_choose_label": "手動重置",
+    "reset_choose_button": "使用所選重置",
+    "reset_credit_expires": "{{date}} 到期",
+    "reset_credit_expires_first": "最先到期",
     "reset_not_confirmed": "尚未確認額度重置成功，請重新整理額度後再決定是否重試。",
     "reset_cooldown_failed": "額度已重置，但代理冷卻清除失敗。請在原連線的認證檔案頁面使用「清除冷卻」，不要再次消耗重置卡。",
 

@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { IconRefreshCw } from '@/components/ui/icons';
 import { bindQuotaClasses } from '@/features/quota/types';
 import { QUOTA_ADAPTERS, type QuotaCardState } from '@/features/quota/providers';
+import { buildCodexResetConfirmation } from '@/features/quota/providers/codex/codexResetConfirmation';
 import styles from './AuthFileQuota.module.scss';
 
 /** 认证文件卡片外衣：紧凑额度样式绑定成类型化契约（缺键在模块初始化即抛）。 */
@@ -116,17 +117,18 @@ export function AuthFileQuotaSection(props: AuthFileQuotaSectionProps) {
 
     const resetQuota = adapter.resetQuota;
     if (!resetQuota) return;
+    const confirmation = buildCodexResetConfirmation(t, file.name, quota, Date.now());
 
     showConfirmation({
       title: t('codex_quota.reset_confirm_title'),
-      message: t('codex_quota.reset_confirm_message', { name: file.name }),
-      confirmText: t('codex_quota.reset_confirm_button'),
+      message: confirmation.message,
+      confirmText: confirmation.confirmText,
       variant: 'primary',
       onConfirm: async () => {
         const cacheGeneration = captureQuotaCacheGeneration(file.name);
         setResettingQuota(true);
         try {
-          const data = await resetQuota(file, t);
+          const data = await resetQuota(file, t, confirmation.creditId());
           commitIfQuotaCacheCurrent(cacheGeneration, () => {
             updateQuotaState((prev) => ({
               ...prev,
@@ -149,7 +151,7 @@ export function AuthFileQuotaSection(props: AuthFileQuotaSectionProps) {
     cacheKey,
     disableControls,
     file,
-    quota?.status,
+    quota,
     resettingQuota,
     showConfirmation,
     showNotification,
