@@ -12,7 +12,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 320px;
+  max-height: min(440px, 55vh);
   overflow-y: auto;
   /* Room for the focus ring, which the scroll container would clip. */
   padding: 4px;
@@ -67,6 +67,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
   min-width: 0;
 }
 
@@ -77,10 +78,23 @@
   color: var(--text-primary);
 }
 
-.relative {
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+
+.details {
   font-size: 12px;
   line-height: 1.5;
+  font-variant-numeric: tabular-nums;
   color: var(--text-tertiary);
+}
+
+/* Lines break between facts, never inside one. */
+.segment {
+  white-space: nowrap;
 }
 
 .badge {

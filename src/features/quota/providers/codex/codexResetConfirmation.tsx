@@ -1,8 +1,8 @@
 import type { TFunction } from 'i18next';
 import type { CodexRateLimitResetCredit } from '@/types';
 import { sortCodexResetCredits } from '@/utils/quota';
+import { ResetChoicePicker } from '../../components/ResetChoicePicker';
 import type { QuotaCardState } from '../index';
-import { CodexResetCreditPicker } from './CodexResetCreditPicker';
 
 /**
  * Confirmation content for a Codex reset. With known credits it lists them,
@@ -31,9 +31,9 @@ export function buildCodexResetConfirmation(
   let creditId = credits[0].id;
   return {
     message: (
-      <CodexResetCreditPicker
-        name={name}
-        credits={credits}
+      <ResetChoicePicker
+        message={t('codex_quota.reset_choose_message', { name })}
+        choices={credits.map((credit) => ({ id: credit.id, expiresAtMs: credit.expiresAtMs }))}
         now={now}
         onChange={(id) => {
           creditId = id;

@@ -12,6 +12,7 @@ import type { AuthFileItem } from '@/types';
 import { normalizeAuthIndex } from '@/utils/quota';
 import { resetGrantOperations, RETRY_WINDOW_MS } from './resetGrantOperations';
 import { selectResetGrant } from './selectResetGrant';
+import { buildClaudeResetConfirmation } from './claudeResetConfirmation';
 
 /** Card-owned reads; the session-scoped journal owns spending and ambiguous retries. */
 export function useClaudeResetGrants(
@@ -71,20 +72,29 @@ export function useClaudeResetGrants(
     const version = generation.current;
     const current = () =>
       session === apiClient.getConnectionRevision() && version === generation.current;
+    // A retry must reuse the ambiguous claim's grant, so only a fresh claim offers a choice.
+    const confirmation = pending
+      ? {
+          message: t('claude_reset.retry_confirm', { name: file.name }),
+          confirmText: t('claude_reset.retry'),
+          grantId: (): string | undefined => pending.grantId,
+        }
+      : status && buildClaudeResetConfirmation(t, file.name, status, now);
+    if (!confirmation) return;
     showConfirmation({
       title: t('claude_reset.title'),
-      message: t(pending ? 'claude_reset.retry_confirm' : 'claude_reset.confirm_text', {
-        name: file.name,
-      }),
-      confirmText: t(pending ? 'claude_reset.retry' : 'claude_reset.confirm'),
+      message: confirmation.message,
+      confirmText: confirmation.confirmText,
       variant: 'primary',
       onConfirm: async () => {
         if (!current() || lock.current || useAuthStore.getState().connectionStatus !== 'connected')
           return;
+        const grantId = confirmation.grantId();
+        if (!grantId) return;
         lock.current = true;
         setBusy(true);
         try {
-          const answer = await resetGrantOperations.run(key, authIndex, selected);
+          const answer = await resetGrantOperations.run(key, authIndex, grantId);
           if (!current()) return;
           showNotification(
             t(`claude_reset.${answer.unresolved ? 'unknown' : answer.code}`),
