@@ -1095,7 +1095,8 @@
     "meta_fields": "{{count}} Ayar",
     "meta_dirty": "{{count}} Kaydedilmemiş",
     "meta_dirty_source": "Kaydedilmemiş Kaynak Düzenlemeleri",
-    "meta_errors": "{{count}} Doğrulama Hatası",
+    "meta_errors_one": "{{count}} Doğrulama Hatası",
+    "meta_errors_other": "{{count}} Doğrulama Hatası",
     "meta_synced": "Eşitlendi",
     "actions": {
       "discard": "Değişiklikleri At",

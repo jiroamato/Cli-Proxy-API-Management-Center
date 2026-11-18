@@ -1051,7 +1051,8 @@
     "meta_fields": "{{count}} cài đặt",
     "meta_dirty": "{{count}} chưa lưu",
     "meta_dirty_source": "Chỉnh sửa nguồn chưa lưu",
-    "meta_errors": "{{count}} lỗi xác thực",
+    "meta_errors_one": "{{count}} lỗi xác thực",
+    "meta_errors_other": "{{count}} lỗi xác thực",
     "meta_synced": "Đã đồng bộ",
     "actions": {
       "discard": "Hủy thay đổi",

@@ -1095,7 +1095,8 @@
     "meta_fields": "{{count}} settings",
     "meta_dirty": "{{count}} unsaved",
     "meta_dirty_source": "Unsaved source edits",
-    "meta_errors": "{{count}} validation errors",
+    "meta_errors_one": "{{count}} validation error",
+    "meta_errors_other": "{{count}} validation errors",
     "meta_synced": "In sync",
     "actions": {
       "discard": "Discard changes",
