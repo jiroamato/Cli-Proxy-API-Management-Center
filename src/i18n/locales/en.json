@@ -113,7 +113,7 @@
     "plugins": "Plugins",
     "config_management": "Config Panel",
     "logs": "Logs Viewer",
-    "system_info": "Management Center Info"
+    "system_info": "System Info"
   },
   "nav_groups": {
     "operate": "Operate",

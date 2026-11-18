@@ -113,7 +113,7 @@
     "plugins": "Plugin",
     "config_management": "Bảng cấu hình",
     "logs": "Trình xem Log",
-    "system_info": "Thông tin Trung tâm Quản lý"
+    "system_info": "Thông tin hệ thống"
   },
   "nav_groups": {
     "operate": "Vận hành",
