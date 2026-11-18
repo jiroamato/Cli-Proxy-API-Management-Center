@@ -24,21 +24,28 @@ import {
   formatInstantShort,
   formatRelativeInstant,
   parseIsoToMs,
-  resolvePlanTier,
   resolveResetMs,
 } from '@/utils/quota';
 import type { QuotaCardState } from '../providers';
 import type { QuotaProviderType } from '../providers/types';
 import {
-  getAntigravityPlanLabel,
-  isAntigravityPremiumPlan,
-} from '../providers/antigravity/planLabel';
+  resolveAntigravityCardTier,
+  resolveClaudeCardTier,
+  resolveCodexCardTier,
+  resolveXaiCardTier,
+  type QuotaCardTier,
+} from '../cardTier';
+import { getAntigravityPlanLabel } from '../providers/antigravity/planLabel';
 import { getCodexPlanLabel } from '../providers/codex/planLabel';
 import { formatPluginMetric, getPluginPlanLabel } from '../providers/plugin/format';
-import { resolveXaiPlanLabel, resolveXaiPlanTier } from '../providers/xai/planLabel';
+import { resolveXaiPlanLabel } from '../providers/xai/planLabel';
 import { XAI_WEEKLY_ROW_ID, resetCreditRowId } from '../resetSchedule';
 
 export type LedgerPlanTier = 'standard' | 'premium' | 'elite';
+
+/** The card tier, in the ledger's naming: the card's flagship tier styles as elite. */
+const toLedgerTier = (tier: QuotaCardTier): LedgerPlanTier =>
+  tier === 'flagship' ? 'elite' : tier;
 
 export interface LedgerMetric {
   /** Stable per-provider id; the summary strip groups credentials by it. */
@@ -130,21 +137,55 @@ export function orderLedgerMetrics(
     .map(({ metric }) => metric);
 }
 
+const formatMoney = (value: number | null, currency: string, divisor = 1): string => {
+  if (value === null) return '--';
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(
+      value / divisor
+    );
+  } catch {
+    return `${(value / divisor).toFixed(2)} ${currency}`;
+  }
+};
+
 const buildClaude = (quota: ClaudeQuotaState, t: TFunction): LedgerCredential => {
   const extras: LedgerExtra[] = [];
   const extraUsage = quota.extraUsage ?? null;
-  if (extraUsage && extraUsage.is_enabled) {
+  if (extraUsage?.isEnabled) {
+    // Extra usage is reported in cents.
+    const currency = extraUsage.currency ?? 'USD';
     extras.push({
       id: 'claude:extra-usage',
       title: t('claude_quota.extra_usage_label'),
-      value: `$${(extraUsage.used_credits / 100).toFixed(2)}`,
-      valueSuffix: `/ $${(extraUsage.monthly_limit / 100).toFixed(2)}`,
+      value: formatMoney(extraUsage.usedCredits, currency, 100),
+      valueSuffix:
+        extraUsage.monthlyLimit === null
+          ? null
+          : `/ ${formatMoney(extraUsage.monthlyLimit, currency, 100)}`,
       lines: [],
+    });
+  }
+  for (const balance of quota.dollarWindows ?? []) {
+    extras.push({
+      id: `claude:balance:${balance.key}`,
+      title: balance.key,
+      value: formatMoney(balance.remainingDollars, 'USD'),
+      valueSuffix:
+        balance.limitDollars === null ? null : `/ ${formatMoney(balance.limitDollars, 'USD')}`,
+      lines: balance.resetsAt
+        ? [
+            {
+              id: `claude:balance:${balance.key}:reset`,
+              text: t('claude_quota.balance_reset'),
+              atMs: parseIsoToMs(balance.resetsAt),
+            },
+          ]
+        : [],
     });
   }
   return {
     plan: quota.planType ? t(`claude_quota.${quota.planType}`) : null,
-    planTier: 'standard',
+    planTier: toLedgerTier(resolveClaudeCardTier(quota.planType)),
     renewsAtMs: null,
     message: null,
     extras,
@@ -163,7 +204,6 @@ const buildClaude = (quota: ClaudeQuotaState, t: TFunction): LedgerCredential =>
 };
 
 const buildCodex = (quota: CodexQuotaState, t: TFunction): LedgerCredential => {
-  const tier = resolvePlanTier(quota.planType ?? null);
   const extras: LedgerExtra[] = [];
   const availableCount = quota.rateLimitResetCreditsAvailableCount ?? null;
   const credits = quota.rateLimitResetCredits ?? [];
@@ -182,7 +222,7 @@ const buildCodex = (quota: CodexQuotaState, t: TFunction): LedgerCredential => {
   }
   return {
     plan: getCodexPlanLabel(t, quota.planType),
-    planTier: tier === 'elite' ? 'elite' : tier === 'premium' ? 'premium' : 'standard',
+    planTier: toLedgerTier(resolveCodexCardTier(quota.planType)),
     renewsAtMs: resolveResetMs([quota.subscriptionActiveUntil ?? null]),
     message: null,
     extras,
@@ -203,7 +243,7 @@ const buildXai = (quota: XaiQuotaState, t: TFunction): LedgerCredential | null =
   const billing = quota.billing;
   if (!billing) return null;
   const plan = resolveXaiPlanLabel(t, billing);
-  const planTier = resolveXaiPlanTier(billing);
+  const planTier = toLedgerTier(resolveXaiCardTier(billing));
   if (billing.mode === 'paid-health') {
     return {
       plan,
@@ -331,7 +371,7 @@ const buildKimi = (quota: KimiQuotaState, t: TFunction): LedgerCredential => ({
 
 const buildAntigravity = (quota: AntigravityQuotaState, t: TFunction): LedgerCredential => ({
   plan: getAntigravityPlanLabel(quota.subscription, t),
-  planTier: isAntigravityPremiumPlan(quota.subscription) ? 'premium' : 'standard',
+  planTier: toLedgerTier(resolveAntigravityCardTier(quota.subscription?.plan)),
   renewsAtMs: null,
   message: null,
   extras: [],

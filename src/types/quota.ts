@@ -98,7 +98,7 @@ export interface CodexUsagePayload {
 
 // Claude API payload types
 export interface ClaudeUsageWindow {
-  utilization: number;
+  utilization: number | null;
   resets_at: string | null;
   limit_dollars?: number | null;
   used_dollars?: number | null;
@@ -119,11 +119,46 @@ export interface ClaudeUsageLimit {
   } | null;
 }
 
+export interface ClaudeExtraUsagePayload {
+  is_enabled?: boolean | null;
+  monthly_limit?: number | null;
+  used_credits?: number | null;
+  utilization?: number | null;
+  currency?: string | null;
+  disabled_reason?: string | null;
+  user_disabled?: boolean | null;
+  spend_limit_reached?: boolean | null;
+}
+
+/** Amounts are in minor currency units, unlike the separate dollar windows. */
 export interface ClaudeExtraUsage {
-  is_enabled: boolean;
-  monthly_limit: number;
-  used_credits: number;
+  /** Anthropic's extra-usage setting, independent of CPA credential enablement. */
+  isEnabled: boolean | null;
+  monthlyLimit: number | null;
+  usedCredits: number | null;
   utilization: number | null;
+  currency: string | null;
+  disabledReason: string | null;
+  /** Raw extra_usage.user_disabled flag; never AuthFileItem.disabled. */
+  userDisabled: boolean | null;
+  spendLimitReached: boolean | null;
+}
+
+export interface ClaudeDollarWindow {
+  /** Original upstream key; never conflated with extra usage. */
+  key: string;
+  limitDollars: number | null;
+  usedDollars: number | null;
+  remainingDollars: number | null;
+  utilization: number | null;
+  resetsAt: string | null;
+}
+
+export interface ClaudeUsageSnapshot {
+  fiveHour: { utilization: number | null; resetsAt: string | null } | null;
+  sevenDay: { utilization: number | null; resetsAt: string | null } | null;
+  extraUsage: ClaudeExtraUsage | null;
+  dollarWindows: ClaudeDollarWindow[];
 }
 
 export interface ClaudeUsagePayload {
@@ -135,7 +170,8 @@ export interface ClaudeUsagePayload {
   seven_day_cowork?: ClaudeUsageWindow | null;
   iguana_necktie?: ClaudeUsageWindow | null;
   limits?: ClaudeUsageLimit[] | null;
-  extra_usage?: ClaudeExtraUsage | null;
+  extra_usage?: ClaudeExtraUsagePayload | null;
+  [key: string]: unknown;
 }
 
 export interface ClaudeProfileResponse {
@@ -180,6 +216,9 @@ export interface ClaudeQuotaState {
   status: 'idle' | 'loading' | 'success' | 'error';
   windows: ClaudeQuotaWindow[];
   extraUsage?: ClaudeExtraUsage | null;
+  dollarWindows?: ClaudeDollarWindow[];
+  observedAt?: string | null;
+  stale?: boolean;
   planType?: string | null;
   /** When the usage read returned; orders it against recorded quota samples. */
   fetchedAtMs?: number;
@@ -274,6 +313,20 @@ export interface CodexQuotaState {
   error?: string;
   errorStatus?: number;
 }
+
+/**
+ * Session knowledge of the account-level "use credits after the usage limit" setting.
+ * This feature records confirmed writes; an absent entry means the value is unknown.
+ */
+export type CodexCreditOverageEntry =
+  | { status: 'writing'; target: boolean }
+  | { status: 'known'; value: boolean; at: number }
+  | { status: 'unconfirmed'; target: boolean; at: number };
+
+/** Account-wide mutex and unresolved-write journal, separate from user snapshots. */
+export type CodexCreditOverageOperation =
+  | { status: 'writing'; target: boolean; unconfirmed: boolean }
+  | { status: 'unconfirmed'; target: boolean; at: number };
 
 export interface DevinQuotaWindow {
   id: 'daily' | 'weekly';
@@ -391,6 +444,8 @@ export interface KimiQuotaRow {
 export interface KimiQuotaState {
   status: 'idle' | 'loading' | 'success' | 'error';
   rows: KimiQuotaRow[];
+  /** Official user_level_name from /me; absent for unavailable account information. */
+  planName?: string | null;
   error?: string;
   errorStatus?: number;
 }

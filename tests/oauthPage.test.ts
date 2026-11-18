@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
@@ -10,7 +11,14 @@ import zhTW from '@/i18n/locales/zh-TW.json';
 import ru from '@/i18n/locales/ru.json';
 import ko from '@/i18n/locales/ko.json';
 import vi from '@/i18n/locales/vi.json';
+import tr from '@/i18n/locales/tr.json';
 import { OAuthPage } from '@/features/oauth/OAuthPage';
+import {
+  OAuthFlowDialog,
+  type OAuthFlowDialogProps,
+} from '@/features/oauth/components/OAuthFlowDialog';
+import { VertexImportDialog } from '@/features/oauth/components/VertexImportDialog';
+import type { ProviderFlowState } from '@/features/oauth/hooks/useOAuthFlows';
 import { resolveCallbackUrl, XAI_CALLBACK_URL } from '@/features/oauth/callbackUrl';
 import { resolveFlowView, splitAuthUrl } from '@/features/oauth/flowView';
 import { buildPluginOAuthProviderCards, OAUTH_PROVIDERS } from '@/features/oauth/providers';
@@ -138,11 +146,62 @@ describe('OAuth provider gallery', () => {
         expect(markup).toContain(label);
       }
       expect(markup).toContain('Vertex AI');
-      expect(markup).not.toMatch(/auth_login\.|vertex_import\./);
-      // 每个磁贴都是打开对话框的按钮
-      expect(markup.match(/aria-haspopup="dialog"/g)?.length).toBe(OAUTH_PROVIDERS.length + 1);
+      expect(markup).toContain(i18n.t('siwc.bind'));
+      expect(markup).not.toMatch(/auth_login\.|vertex_import\.|siwc\./);
+      // 每个磁贴都是打开对话框的按钮（提供商 + Vertex + SIWC 绑定）
+      expect(markup.match(/aria-haspopup="dialog"/g)?.length).toBe(OAUTH_PROVIDERS.length + 2);
     });
   }
+
+  test('merges both Kimi sites into one sponsor card with per-site entries', async () => {
+    const i18n = createInstance();
+    await i18n.init({ lng: 'zh-CN', resources: { 'zh-CN': { translation: zhCN } } });
+    const markup = renderToStaticMarkup(
+      createElement(
+        I18nextProvider,
+        { i18n },
+        createElement(MemoryRouter, null, createElement(OAuthPage))
+      )
+    );
+    // 一张品牌卡（role=group），卡内两个站点登录入口 + 两个开放平台注册链接
+    expect(markup.match(/role="group"/g)?.length).toBe(1);
+    const card = markup.slice(markup.indexOf('role="group"'));
+    expect(card).toContain('aria-label="Kimi 国内站"');
+    expect(card).toContain('aria-label="Kimi 国际站"');
+    expect(card).toContain('>国内站</button>');
+    expect(card).toContain('>国际站</button>');
+    expect(card.match(/aria-label="注册开放平台 · Kimi /g)?.length).toBe(2);
+  });
+
+  test('keeps each visible Kimi site name inside its accessible name', () => {
+    const sponsors = OAUTH_PROVIDERS.filter((provider) => provider.sponsor);
+    expect(sponsors.map((provider) => provider.id)).toEqual(['kimi', 'kimi-ai']);
+    for (const translation of Object.values(locales)) {
+      const messages = translation.auth_login as Record<string, string>;
+      for (const provider of sponsors) {
+        const nameKey = typeof provider.label === 'string' ? '' : provider.label.key;
+        const name = messages[nameKey.replace('auth_login.', '')];
+        const region = messages[provider.sponsor!.siteKey.replace('auth_login.', '')];
+        expect(region).toBeTruthy();
+        // label-in-name：语音控制说出可见文字就能命中按钮
+        expect(name.toLowerCase()).toContain(region.toLowerCase());
+      }
+      expect(messages.sponsor_kimi_caption).toBeTruthy();
+      expect(messages.sponsor_sign_up).toBeTruthy();
+    }
+  });
+
+  test('overrides per-pool animations with equal specificity under reduced motion', () => {
+    const styles = readFileSync('src/features/oauth/components/SponsorCard.module.scss', 'utf8');
+    const reducedMotionStart = styles.indexOf('@media (prefers-reduced-motion: reduce)');
+    const poolAnimationStart = styles.indexOf(".pool[data-pool='#{$name}']");
+    expect(poolAnimationStart).toBeGreaterThanOrEqual(0);
+    expect(reducedMotionStart).toBeGreaterThan(poolAnimationStart);
+    // 属性选择器与每个光池的动画规则保持同等优先级；仅 .pool 无法覆盖动画。
+    expect(styles.slice(reducedMotionStart)).toMatch(
+      /\.pool\[data-pool\]\s*,[^{}]*\{\s*animation:\s*none;/
+    );
+  });
 
   test('keeps both Kimi registration links as safe external links', async () => {
     const i18n = createInstance();
@@ -160,5 +219,115 @@ describe('OAuth provider gallery', () => {
         new RegExp(`href="${escaped}" target="_blank" rel="noopener noreferrer"`)
       );
     }
+  });
+});
+
+describe('OAuth dialog secondary text', () => {
+  const renderEn = async (element: ReturnType<typeof createElement>) => {
+    const i18n = createInstance();
+    await i18n.init({ lng: 'en', resources: { en: { translation: en } } });
+    return {
+      i18n,
+      markup: renderToStaticMarkup(createElement(I18nextProvider, { i18n }, element)),
+    };
+  };
+
+  const dialog = (providerId: string, state: ProviderFlowState, extra = {}) =>
+    createElement(OAuthFlowDialog, {
+      open: true,
+      providerId,
+      heading: { title: `${providerId} OAuth`, caption: 'Browser sign-in', icon: '' },
+      state,
+      text: (suffix: string) => `auth_login.${providerId}_${suffix}`,
+      supportsCallback: false,
+      onStart: () => {},
+      onCancel: () => {},
+      onCallbackChange: () => {},
+      onCallbackSubmit: () => {},
+      onViewAuthFiles: () => {},
+      onClose: () => {},
+      ...extra,
+    } satisfies OAuthFlowDialogProps);
+
+  test('only providers with something non-obvious to say carry a sign-in note', () => {
+    const withNotes = OAUTH_PROVIDERS.filter((provider) => provider.signInNoteKey);
+    expect(withNotes.map((provider) => provider.id).sort()).toEqual(
+      ['antigravity', 'devin', 'kimi', 'kimi-ai'].sort()
+    );
+    for (const translation of [en, zhCN, zhTW, ru, ko, vi, tr]) {
+      const messages = translation.auth_login as Record<string, string>;
+      for (const provider of withNotes) {
+        expect(messages[provider.signInNoteKey!.replace('auth_login.', '')]).toBeTruthy();
+      }
+    }
+  });
+
+  test('no longer opens with the provider sentence and puts the note behind the step title', async () => {
+    const waiting = { status: 'waiting' as const, url: 'https://accounts.example/authorize' };
+    const plain = await renderEn(dialog('codex', waiting));
+    // The dialog no longer renders `<provider>_oauth_hint` at all.
+    expect(plain.markup).not.toContain('oauth_hint');
+    expect(plain.markup).not.toContain('data-info-tip');
+
+    const note = en.auth_login.antigravity_oauth_hint;
+    const noted = await renderEn(dialog('antigravity', waiting, { signInNote: note }));
+    const title = en.auth_login.step_open_auth_page;
+    expect(noted.markup).toContain(`${title}</span><button type="button" data-info-tip=""`);
+    expect(noted.markup).toContain(
+      `aria-label="${noted.i18n.t('common.more_info_about', { label: title })}"`
+    );
+    // The note stays reachable to assistive tech through the InfoTip's hidden description.
+    expect(noted.markup).toMatch(/<span id="[^"]+" hidden="">[^<]*Google[^<]*<\/span>/);
+  });
+
+  test('keeps the sponsor sign-up link visible without the provider sentence', async () => {
+    const { markup } = await renderEn(
+      dialog('kimi', {}, { sponsor: { url: 'https://platform.example/', label: 'Sign Up Now' } })
+    );
+    expect(markup).toContain(en.auth_login.sign_up_prompt);
+    expect(markup).toContain('href="https://platform.example/"');
+    expect(markup).not.toContain('kimi_oauth_hint');
+  });
+
+  test('the success view relies on its actions instead of a saved-credential sentence', async () => {
+    const { markup } = await renderEn(dialog('codex', { status: 'success' }));
+    expect(markup).toContain(en.auth_login.view_auth_files);
+    // Literal on purpose: `auth_login.success_saved_hint` is slated for removal from the locales.
+    expect(markup).not.toContain('manage it in Auth Files');
+  });
+
+  test('the Vertex import form drops its description and moves the file hint into an InfoTip', async () => {
+    const { markup } = await renderEn(
+      createElement(VertexImportDialog, {
+        open: true,
+        heading: { title: en.vertex_import.title, caption: en.vertex_import.file_label, icon: '' },
+        vertex: { location: '', loading: false },
+        onPickFile: () => {},
+        onLocationChange: () => {},
+        onImport: () => {},
+        onImportAnother: () => {},
+        onViewAuthFiles: () => {},
+        onClose: () => {},
+      })
+    );
+    // Literal on purpose: `vertex_import.description` is slated for removal from the locales.
+    expect(markup).not.toContain('vertex-import helper');
+    expect(markup).toContain(en.vertex_import.drop_hint);
+    // The file hint lives in one hidden element that describes both the drop zone and the InfoTip.
+    const hint = new RegExp(`<span id="([^"]+)" hidden="">${en.vertex_import.file_hint}</span>`);
+    const hintId = hint.exec(markup)?.[1];
+    expect(hintId).toBeTruthy();
+    expect(markup).toContain(
+      `data-info-tip="" aria-label="More information about ${en.vertex_import.file_label}" aria-describedby="${hintId}"`
+    );
+    expect(markup).toMatch(
+      new RegExp(
+        `aria-describedby="${hintId}"[^>]*>(?:(?!</button>).)*${en.vertex_import.drop_hint}`
+      )
+    );
+    // The region field keeps its explanation as the shared Input's InfoTip.
+    expect(markup).toContain(
+      `aria-label="More information about ${en.vertex_import.location_label}"`
+    );
   });
 });

@@ -137,7 +137,11 @@ describe('buildLedgerCredential', () => {
     };
     const result = buildLedgerCredential('codex', quota, t);
     expect(result?.plan).toBe('codex_quota.plan_pro');
-    expect(result?.planTier).toBe('elite');
+    // Pro (200) is the premium card tier; only Pro 500 (promax) is flagship, shown as elite.
+    expect(result?.planTier).toBe('premium');
+    expect(buildLedgerCredential('codex', { ...quota, planType: 'promax' }, t)?.planTier).toBe(
+      'elite'
+    );
     expect(result?.renewsAtMs).toBe(Date.parse('2026-10-03T17:02:00Z'));
     expect(result?.metrics[0].remainingPercent).toBe(17);
     expect(result?.extras).toHaveLength(1);

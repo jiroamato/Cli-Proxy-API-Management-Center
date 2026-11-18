@@ -5,14 +5,20 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useNotificationStore } from '@/stores';
 import { apiClient } from '@/services/api/client';
 import {
-  readClaudeResetGrants,
+  AnthropicResetGrantError,
   type AnthropicResetGrantStatus,
 } from '@/services/api/claudeResetGrants';
 import type { AuthFileItem } from '@/types';
 import { normalizeAuthIndex } from '@/utils/quota';
-import { resetGrantOperations, RETRY_WINDOW_MS } from './resetGrantOperations';
-import { selectResetGrant } from './selectResetGrant';
-import { buildClaudeResetConfirmation } from './claudeResetConfirmation';
+import {
+  resetGrantOperations,
+  RETRY_WINDOW_MS,
+  ResetGrantPreflightError,
+  resetGrantFailureMessageKey,
+} from './resetGrantOperations';
+import { canChooseResetGrant } from './resetGrantChoice';
+import { readResetGrantsForCard, scheduleResetGrantRead } from './resetGrantReads';
+import { selectResetGrant, sortResetGrants } from './selectResetGrant';
 
 /** Card-owned reads; the session-scoped journal owns spending and ambiguous retries. */
 export function useClaudeResetGrants(
@@ -27,7 +33,6 @@ export function useClaudeResetGrants(
   const [session] = useState(() => apiClient.getConnectionRevision());
   const sessionActive =
     connectionStatus === 'connected' && session === apiClient.getConnectionRevision();
-  const showConfirmation = useNotificationStore((state) => state.showConfirmation);
   const showNotification = useNotificationStore((state) => state.showNotification);
   const now = useNow();
   const authIndex = normalizeAuthIndex(file.auth_index ?? file.authIndex);
@@ -36,6 +41,7 @@ export function useClaudeResetGrants(
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [reload, setReload] = useState(0);
+  const [dialog, setDialog] = useState<{ key: string; selected: string | null } | null>(null);
   const lock = useRef(false);
   const generation = useRef(0);
   useEffect(() => {
@@ -45,88 +51,124 @@ export function useClaudeResetGrants(
     let cancelled = false;
     const current = () =>
       !cancelled && version === generation.current && session === apiClient.getConnectionRevision();
-    void readClaudeResetGrants(authIndex).then(
-      (result) => {
-        if (current()) {
-          setStatus(result);
-          setMessage('');
+    const cancelRead = scheduleResetGrantRead(() => {
+      void readResetGrantsForCard(authIndex).then(
+        (result) => {
+          if (current()) {
+            setStatus(result);
+            setMessage('');
+          }
+        },
+        (error: unknown) => {
+          if (current()) {
+            setMessage(
+              error instanceof AnthropicResetGrantError && error.code === 'rate_limited'
+                ? 'rate_limited'
+                : 'read_error'
+            );
+          }
         }
-      },
-      () => {
-        if (current()) setMessage('read_error');
-      }
-    );
+      );
+    }, current);
     return () => {
       cancelled = true;
+      cancelRead();
       generation.current += 1;
     };
   }, [authIndex, key, enabled, disabled, sessionActive, session, refreshToken, reload]);
 
   const operation = resetGrantOperations.inspect(key);
   const pending = operation && !operation.code ? operation : undefined;
+  const listed = [...(status?.grants ?? [])];
+  if (pending && !listed.some((grant) => grant.id === pending.grantId)) listed.push(pending.grant);
+  const grants = sortResetGrants(listed, status?.nextGrantId);
   const expired = Boolean(pending && now - pending.createdAt >= RETRY_WINDOW_MS);
-  const selected = pending?.grantId ?? (status ? selectResetGrant(status, now)?.id : undefined);
-  const blocked = disabled || !sessionActive || !authIndex || busy || expired || !selected;
-  const confirm = () => {
-    if (blocked || lock.current || !selected || !authIndex) return;
+  const blocked = !enabled || disabled || !sessionActive || !authIndex || busy || expired;
+  const canRedeemGrant = (grantId: unknown) =>
+    !blocked && canChooseResetGrant(status, pending?.grantId, grantId, now);
+  const open = Boolean(dialog && dialog.key === key && sessionActive && enabled);
+  // Until the operator picks, the dialog offers the redeemable grant that expires first. A
+  // pending retry can only redeem its original grant, so that is the one it offers.
+  // Ignores the transient blocks (such as a claim in flight) so the choice does not flicker.
+  const soonestGrantId = selectResetGrant(grants, (grantId) =>
+    canChooseResetGrant(status, pending?.grantId, grantId, now)
+  );
+  const selected = open ? (dialog?.selected ?? soonestGrantId) : null;
+  const confirm = async () => {
+    if (!open || !selected || !canRedeemGrant(selected) || lock.current || !authIndex) return;
     const version = generation.current;
     const current = () =>
       session === apiClient.getConnectionRevision() && version === generation.current;
-    // A retry must reuse the ambiguous claim's grant, so only a fresh claim offers a choice.
-    const confirmation = pending
-      ? {
-          message: t('claude_reset.retry_confirm', { name: file.name }),
-          confirmText: t('claude_reset.retry'),
-          grantId: (): string | undefined => pending.grantId,
-        }
-      : status && buildClaudeResetConfirmation(t, file.name, status, now);
-    if (!confirmation) return;
-    showConfirmation({
-      title: t('claude_reset.title'),
-      message: confirmation.message,
-      confirmText: confirmation.confirmText,
-      variant: 'primary',
-      onConfirm: async () => {
-        if (!current() || lock.current || useAuthStore.getState().connectionStatus !== 'connected')
-          return;
-        const grantId = confirmation.grantId();
-        if (!grantId) return;
-        lock.current = true;
-        setBusy(true);
-        try {
-          const answer = await resetGrantOperations.run(key, authIndex, grantId);
-          if (!current()) return;
-          showNotification(
-            t(`claude_reset.${answer.unresolved ? 'unknown' : answer.code}`),
-            !answer.unresolved && (answer.code === 'reset' || answer.code === 'already_used')
-              ? 'success'
-              : 'error'
-          );
-        } catch {
-          if (!current()) return;
-          const unresolved = resetGrantOperations.inspect(key);
-          showNotification(
-            t(`claude_reset.${unresolved && !unresolved.code ? 'unknown' : 'blocked'}`),
-            'error'
-          );
-        } finally {
-          lock.current = false;
-          // A concurrent page-wide refresh can invalidate this read generation.
-          // Release the local lock regardless, but never refresh a replacement account.
-          setBusy(false);
-          setReload((value) => value + 1);
-          if (current()) onRefresh();
-        }
-      },
-    });
+    if (!current() || useAuthStore.getState().connectionStatus !== 'connected') return;
+    lock.current = true;
+    setBusy(true);
+    try {
+      const answer = await resetGrantOperations.run(key, authIndex, selected);
+      if (!current()) return;
+      if (
+        !answer.unresolved &&
+        (answer.code === 'reset' ||
+          answer.code === 'already_used' ||
+          answer.code === 'cooldown_clear_failed')
+      ) {
+        setDialog(null);
+      }
+      showNotification(
+        answer.code === 'cooldown_clear_failed'
+          ? t('auth_files.cooldown_reset_failed', {
+              name: file.name,
+              message: t('common.unknown_error'),
+            })
+          : t(`claude_reset.${answer.unresolved ? 'unknown' : answer.code}`),
+        !answer.unresolved && (answer.code === 'reset' || answer.code === 'already_used')
+          ? 'success'
+          : 'error'
+      );
+    } catch (error: unknown) {
+      if (!current()) return;
+      const unresolved = resetGrantOperations.inspect(key);
+      showNotification(
+        t(
+          unresolved && !unresolved.code
+            ? 'claude_reset.unknown'
+            : resetGrantFailureMessageKey(error),
+          {
+            code: error instanceof ResetGrantPreflightError ? error.reason : '',
+          }
+        ),
+        'error'
+      );
+    } finally {
+      lock.current = false;
+      // A concurrent page-wide refresh can invalidate this read generation.
+      // Release the local lock regardless, but never refresh a replacement account.
+      setBusy(false);
+      setReload((value) => value + 1);
+      if (current()) onRefresh();
+    }
   };
   return {
     count: status?.grants.reduce((sum, grant) => sum + grant.resetsLeft, 0) ?? null,
-    grants: status?.grants ?? [],
-    busy,
+    grants,
+    loading: !status && !message && !pending,
+    open,
+    selected,
+    openDialog: () => {
+      if (!blocked && !lock.current) setDialog({ key, selected: null });
+    },
+    closeDialog: () => {
+      if (!lock.current) setDialog(null);
+    },
+    selectGrant: (grantId: string) => {
+      if (open && canRedeemGrant(grantId) && !lock.current) setDialog({ key, selected: grantId });
+    },
     blocked,
+    buttonLabel: pending ? 'retry' : 'use',
+    pendingGrantId: pending?.grantId,
+    soonestGrantId: pending ? undefined : (soonestGrantId ?? undefined),
+    canRedeemGrant,
+    busy,
     confirm,
     message: pending ? (expired ? 'expired' : 'unknown') : message,
-    buttonLabel: pending ? 'retry' : 'use',
   };
 }
