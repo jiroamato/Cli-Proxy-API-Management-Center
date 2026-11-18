@@ -1,11 +1,12 @@
 /**
- * The three per-credential actions, styled by the host through class names.
- * Rendered by the card footer and by every ledger row.
+ * The three per-credential actions, styled by the host through class names,
+ * and the dialogs they open. Rendered by the card and by every ledger row.
  */
 
 import { useTranslation } from 'react-i18next';
 import { IconRefreshCw } from '@/components/ui/icons';
 import type { QuotaFileEntry } from '../logic';
+import { ClaudeResetGrantDialog } from '../providers/claude/ClaudeResetGrantDialog';
 import type { QuotaEntryActionState } from '../hooks/useQuotaEntryActions';
 
 export type QuotaEntryActionsProps = {
@@ -32,7 +33,8 @@ export function QuotaEntryActions(props: QuotaEntryActionsProps) {
           type="button"
           className={pillClassName}
           disabled={claudeReset.blocked}
-          onClick={claudeReset.confirm}
+          onClick={claudeReset.openDialog}
+          aria-haspopup="dialog"
           title={t(`claude_reset.${claudeReset.buttonLabel}`)}
         >
           <IconRefreshCw size={13} className={claudeReset.busy ? spinningClassName : undefined} />
@@ -62,5 +64,34 @@ export function QuotaEntryActions(props: QuotaEntryActionsProps) {
         {t('auth_files.quota_refresh_single')}
       </button>
     </>
+  );
+}
+
+type QuotaEntryDialogsProps = {
+  entry: QuotaFileEntry;
+  actions: QuotaEntryActionState;
+  name: string;
+};
+
+/** Kept outside the action row so a dialog survives the host hiding its actions. */
+export function QuotaEntryDialogs({ entry, actions, name }: QuotaEntryDialogsProps) {
+  const { claudeReset } = actions;
+  if (entry.type !== 'claude') return null;
+  return (
+    <ClaudeResetGrantDialog
+      open={claudeReset.open}
+      grants={claudeReset.grants}
+      selected={claudeReset.selected}
+      canRedeemGrant={claudeReset.canRedeemGrant}
+      onSelect={claudeReset.selectGrant}
+      busy={claudeReset.busy}
+      loading={claudeReset.loading}
+      pendingGrantId={claudeReset.pendingGrantId}
+      soonestGrantId={claudeReset.soonestGrantId}
+      message={claudeReset.message}
+      name={name}
+      onConfirm={() => void claudeReset.confirm()}
+      onClose={claudeReset.closeDialog}
+    />
   );
 }

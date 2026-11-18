@@ -21,10 +21,3 @@ export const getAntigravityPlanLabel = (
     (subscription.plan === 'unknown' ? t('antigravity_subscription.plan_unknown') : null)
   );
 };
-
-export const isAntigravityPremiumPlan = (
-  subscription: AntigravityQuotaSubscription | null | undefined
-): boolean => {
-  const normalized = subscription?.plan?.toLowerCase() ?? '';
-  return normalized === 'ultra' || normalized === 'ultra-lite';
-};

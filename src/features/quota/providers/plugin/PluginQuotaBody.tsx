@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { PluginQuotaState } from '@/types';
+import { InfoTip } from '@/components/ui/Tooltip';
 import { QuotaMeter } from '../../components/QuotaMeter';
 import type { QuotaBodyProps } from '../../types';
 import { formatPluginMetric, getPluginPlanLabel } from './format';
@@ -19,7 +20,7 @@ export function PluginQuotaBody({ quota, classes }: QuotaBodyProps<PluginQuotaSt
       {(plan || quota.summary.length > 0) && (
         <div className={classes.codexPlan}>
           {plan && (
-            <span className={classes.codexPlanItem}>
+            <span className={classes.codexPlanItem} data-quota-plan="">
               <span className={classes.codexPlanLabel}>{t('plugin_quota.plan_label')}</span>
               <span className={classes.codexPlanValue}>{plan}</span>
             </span>
@@ -38,10 +39,10 @@ export function PluginQuotaBody({ quota, classes }: QuotaBodyProps<PluginQuotaSt
         quota.groups.map((group) => (
           <div key={group.id} className={classes.antigravityQuotaGroup}>
             <div className={classes.antigravityQuotaGroupHeader}>
-              <span className={classes.antigravityQuotaGroupTitle}>{group.label}</span>
-              {group.description && (
-                <span className={classes.antigravityQuotaGroupDescription}>{group.description}</span>
-              )}
+              <span>
+                <span className={classes.antigravityQuotaGroupTitle}>{group.label}</span>
+                {group.description && <InfoTip content={group.description} label={group.label} />}
+              </span>
             </div>
             {group.buckets.map((bucket, index) => {
               const percent = Math.round(Math.max(0, Math.min(1, bucket.remainingFraction)) * 100);

@@ -23,7 +23,7 @@ import {
   type LedgerMetric,
 } from '../ledger/model';
 import { useQuotaEntryActions } from '../hooks/useQuotaEntryActions';
-import { QuotaEntryActions } from './QuotaEntryActions';
+import { QuotaEntryActions, QuotaEntryDialogs } from './QuotaEntryActions';
 import { QUOTA_PROGRESS_HIGH_THRESHOLD, QUOTA_PROGRESS_MEDIUM_THRESHOLD } from './QuotaMeter';
 import styles from './QuotaLedger.module.scss';
 
@@ -257,6 +257,7 @@ function QuotaLedgerRow(props: RowProps) {
           />
         )}
       </div>
+      <QuotaEntryDialogs entry={entry} actions={actions} name={displayName} />
     </div>
   );
 }

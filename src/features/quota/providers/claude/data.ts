@@ -1,11 +1,12 @@
 /**
- * Claude 额度数据层：用量窗口 + 套餐 + 额外用量。
- * React-free / SCSS-free —— 由 tests/claudeFableQuota.test.ts 直接消费。
+ * Claude quota data: plan windows, extra usage, and independent dollar balances.
+ * React-free and SCSS-free so fixture tests can consume the data layer directly.
  */
 
 import type { TFunction } from 'i18next';
 import type {
   AuthFileItem,
+  ClaudeDollarWindow,
   ClaudeExtraUsage,
   ClaudeProfileResponse,
   ClaudeQuotaState,
@@ -14,6 +15,7 @@ import type {
   ClaudeUsagePayload,
 } from '@/types';
 import { apiCallApi, getApiCallErrorMessage } from '@/services/api';
+import { normalizeClaudeUsageSnapshot } from '@/services/api/claudeUsage';
 import {
   CLAUDE_PROFILE_URL,
   CLAUDE_USAGE_URL,
@@ -36,8 +38,15 @@ export type ClaudeQuotaData = {
   windows: ClaudeQuotaWindow[];
   extraUsage?: ClaudeExtraUsage | null;
   planType?: string | null;
+  dollarWindows: ClaudeDollarWindow[];
+  observedAt: string;
   fetchedAtMs: number;
 };
+
+export const hasClaudeUsageData = (quota?: ClaudeQuotaState): boolean =>
+  Boolean(
+    quota?.observedAt || quota?.windows?.length || quota?.extraUsage || quota?.dollarWindows?.length
+  );
 
 const findFableUsageLimit = (payload: ClaudeUsagePayload) => {
   if (!Array.isArray(payload.limits)) return null;
@@ -148,6 +157,24 @@ const parseClaudeProfilePayload = (payload: unknown): ClaudeProfileResponse | nu
   return null;
 };
 
+/**
+ * The organization's rate-limit tier is the only field that separates Max 5x
+ * from Max 20x (`default_claude_max_5x` / `default_claude_max_20x`); the account
+ * flags only say "Max". Pro reports `default_claude_ai`, which Team/Free share,
+ * so it is not used to identify Pro.
+ */
+const resolveClaudeMaxTier = (profile: ClaudeProfileResponse): string | null => {
+  const organization = profile.organization as
+    (NonNullable<ClaudeProfileResponse['organization']> & { rateLimitTier?: string }) | undefined;
+  const tier = normalizeStringValue(
+    organization?.rate_limit_tier ?? organization?.rateLimitTier
+  )?.toLowerCase();
+  if (!tier) return null;
+  if (tier.endsWith('claude_max_20x')) return 'plan_max20';
+  if (tier.endsWith('claude_max_5x')) return 'plan_max5';
+  return null;
+};
+
 export const resolveClaudePlanType = (profile: ClaudeProfileResponse | null): string | null => {
   if (!profile) return null;
 
@@ -163,6 +190,11 @@ export const resolveClaudePlanType = (profile: ClaudeProfileResponse | null): st
   }
 
   // Account flags include personal subscriptions even for a Team-scoped token.
+  // A Team-scoped token carries the Team organization's tier, so a personal
+  // Max seen through it stays the undifferentiated 'plan_max'.
+  const maxTier = resolveClaudeMaxTier(profile);
+  if (maxTier) return maxTier;
+
   const hasClaudeMax = normalizeFlagValue(profile.account?.has_claude_max);
   if (hasClaudeMax) return 'plan_max';
 
@@ -187,7 +219,7 @@ const fetchClaudeQuota = async (file: AuthFileItem, t: TFunction): Promise<Claud
         authIndex,
         method: 'GET',
         url: CLAUDE_USAGE_URL,
-        header: { ...CLAUDE_REQUEST_HEADERS },
+        header: { ...CLAUDE_REQUEST_HEADERS, Accept: 'application/json' },
       })
       .then((response) => ({ response, fetchedAtMs: Date.now() })),
     apiCallApi.request({
@@ -213,7 +245,17 @@ const fetchClaudeQuota = async (file: AuthFileItem, t: TFunction): Promise<Claud
     throw new Error(t('claude_quota.empty_windows'));
   }
 
-  const windows = buildClaudeQuotaWindows(payload, t);
+  const snapshot = normalizeClaudeUsageSnapshot(payload);
+  if (!snapshot) {
+    throw new Error(t('claude_quota.empty_windows'));
+  }
+  const dollarWindows = snapshot.dollarWindows;
+  // Full dollar balances get their own amount/reset rows, not a second plan meter.
+  const windows = buildClaudeQuotaWindows(payload, t).filter(
+    (window) =>
+      window.id !== 'cloud-session-credits' ||
+      !dollarWindows.some((balance) => balance.key === 'iguana_necktie')
+  );
   const planType =
     profileResult.status === 'fulfilled' &&
     profileResult.value.statusCode >= 200 &&
@@ -223,7 +265,14 @@ const fetchClaudeQuota = async (file: AuthFileItem, t: TFunction): Promise<Claud
         )
       : null;
 
-  return { windows, extraUsage: payload.extra_usage, planType, fetchedAtMs };
+  return {
+    windows,
+    extraUsage: snapshot.extraUsage,
+    dollarWindows,
+    observedAt: new Date().toISOString(),
+    planType,
+    fetchedAtMs,
+  };
 };
 
 export const CLAUDE_CONFIG: QuotaProviderData<ClaudeQuotaState, ClaudeQuotaData> = {
@@ -239,6 +288,9 @@ export const CLAUDE_CONFIG: QuotaProviderData<ClaudeQuotaState, ClaudeQuotaData>
     windows: data.windows,
     extraUsage: data.extraUsage,
     planType: data.planType,
+    dollarWindows: data.dollarWindows,
+    observedAt: data.observedAt,
+    stale: false,
     fetchedAtMs: data.fetchedAtMs,
   }),
   buildErrorState: (message, status) => ({
