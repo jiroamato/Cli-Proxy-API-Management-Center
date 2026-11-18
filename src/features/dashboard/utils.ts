@@ -19,12 +19,21 @@ const PROVIDER_LABELS: Record<string, string> = {
   antigravity: 'Antigravity',
 };
 
+const OPENAI_COMPATIBLE_PREFIX = 'openai-compatible-';
+
 /**
  * 解析供应商展示名；未知 id 首字母大写兜底，`unknown` 交给调用方本地化。
  */
 export function providerLabel(id: string, unknownLabel: string): string {
   if (id === 'unknown' || !id) return unknownLabel;
-  return PROVIDER_LABELS[id] ?? id.charAt(0).toUpperCase() + id.slice(1);
+  const known = PROVIDER_LABELS[id];
+  if (known) return known;
+  // The proxy reports each OpenAI-compatible provider as openai-compatible-<name>.
+  if (id.startsWith(OPENAI_COMPATIBLE_PREFIX)) {
+    const name = id.slice(OPENAI_COMPATIBLE_PREFIX.length);
+    return name ? `${PROVIDER_LABELS.openai} · ${name}` : PROVIDER_LABELS.openai;
+  }
+  return id.charAt(0).toUpperCase() + id.slice(1);
 }
 
 export interface WindowParts {
