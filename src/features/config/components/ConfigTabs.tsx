@@ -35,18 +35,27 @@ export function ConfigTabs({
   const listRef = useRef<HTMLDivElement | null>(null);
   const buttonRefs = useRef<Partial<Record<ConfigTabId, HTMLButtonElement | null>>>({});
 
-  // 移动端横滚时把激活 tab 带回视野中央；无溢出时不动，避免无谓的页面滚动。
+  const activeHasBadge = (errorCounts[active] ?? 0) > 0;
+  const activeIsDirty = dirtyTabs.has(active);
+
+  // When the strip overflows, center the active tab, again when its badge or
+  // dirty dot changes its width. Only the strip scrolls, never the page.
   useEffect(() => {
     const scroller = listRef.current;
     const button = buttonRefs.current[active];
     if (!scroller || !button) return;
     if (scroller.scrollWidth <= scroller.clientWidth) return;
-    button.scrollIntoView({
+    const scrollerRect = scroller.getBoundingClientRect();
+    const buttonRect = button.getBoundingClientRect();
+    scroller.scrollTo({
+      left:
+        scroller.scrollLeft +
+        buttonRect.left -
+        scrollerRect.left -
+        (scrollerRect.width - buttonRect.width) / 2,
       behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-      block: 'nearest',
-      inline: 'center',
     });
-  }, [active]);
+  }, [active, activeHasBadge, activeIsDirty]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     const count = CONFIG_TAB_IDS.length;
