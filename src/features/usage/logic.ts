@@ -458,6 +458,13 @@ export const partValue = (metrics: UsageMetrics, part: ModelPart, view: ModelVie
 export const hasCostSplit = (metrics: UsageMetrics): boolean =>
   metrics.costUsd === 0 || MODEL_PARTS.some((part) => partCost(metrics, part) > 0);
 
+/**
+ * Whether a cost can be drawn and listed by part: something is priced and the
+ * backend reported the split.
+ */
+export const showsCostSplit = (metrics: UsageMetrics): boolean =>
+  metrics.costUsd > 0 && hasCostSplit(metrics);
+
 /** Usage that has tokens but no cost because its model has no price. */
 export const isUnpriced = (metrics: UsageMetrics): boolean =>
   metrics.costUsd === 0 && metrics.unpricedTokens > 0;

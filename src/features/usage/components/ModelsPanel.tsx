@@ -10,10 +10,11 @@ import {
   costPerMillion,
   formatShare,
   formatUsd,
-  hasCostSplit,
   isUnpriced,
+  partCost,
   partTokens,
   partValue,
+  showsCostSplit,
   sumMetrics,
   type ModelPart,
   type ModelView,
@@ -61,7 +62,7 @@ function MixBar({ metrics, view, width }: MixBarProps) {
       color: UNCLASSIFIED_COLOR,
     });
   }
-  const split = view === 'tokens' || hasCostSplit(metrics);
+  const split = view === 'tokens' || showsCostSplit(metrics);
   return (
     <span className={styles.track}>
       <span className={styles.mixFill} style={{ width: `${width}%` }}>
@@ -76,7 +77,11 @@ function MixBar({ metrics, view, width }: MixBarProps) {
               />
             ))
         ) : (
-          <span className={styles.mixPart} style={{ flexGrow: 1 }} />
+          // Nothing to split: a neutral fill, so it never reads as one part.
+          <span
+            className={styles.mixPart}
+            style={{ flexGrow: 1, background: UNCLASSIFIED_COLOR }}
+          />
         )}
       </span>
     </span>
@@ -93,6 +98,8 @@ export function ModelsPanel({ groups, truncated, initialView = 'cost' }: ModelsP
   const { rows, basis } = buildModelRows(groups, view, MODEL_ROW_LIMIT);
   const totals = sumMetrics(groups);
   const hasUnclassified = view === 'tokens' && totals.unclassifiedTokens > 0;
+  // The cost view has no parts to explain when nothing is priced or split.
+  const showLegend = view === 'tokens' || showsCostSplit(totals);
   // Bars are scaled to the largest row, so the split of every row stays readable.
   const peakShare = Math.max(0, ...rows.map((row) => row.share));
   const barWidth = (share: number): number => (peakShare > 0 ? (share / peakShare) * 100 : 0);
@@ -101,8 +108,9 @@ export function ModelsPanel({ groups, truncated, initialView = 'cost' }: ModelsP
     // A part with no tokens reads as a dash in both views, not as 0 or $0.
     if (partTokens(metrics, part) === 0) return EMPTY_VALUE;
     if (view === 'tokens') return formatCompactNumber(partValue(metrics, part, view));
-    if (isUnpriced(metrics) || !hasCostSplit(metrics)) return EMPTY_VALUE;
-    return formatUsd(partValue(metrics, part, view));
+    // No priced cost for this part, e.g. it came only from unpriced models.
+    if (!showsCostSplit(metrics) || partCost(metrics, part) === 0) return EMPTY_VALUE;
+    return formatUsd(partCost(metrics, part));
   };
 
   const totalCell = (metrics: UsageMetrics) => {
@@ -187,20 +195,22 @@ export function ModelsPanel({ groups, truncated, initialView = 'cost' }: ModelsP
         <p className={styles.inlineState}>{t('usage.breakdown.empty')}</p>
       ) : (
         <>
-          <ul className={styles.legend}>
-            {MODEL_PARTS.map((part) => (
-              <li key={part} className={styles.legendItem}>
-                <span className={styles.swatch} style={{ background: PART_COLORS[part] }} />
-                <span className={styles.legendLabel}>{t(`usage.models.part.${part}`)}</span>
-              </li>
-            ))}
-            {hasUnclassified && (
-              <li className={styles.legendItem}>
-                <span className={styles.swatch} style={{ background: UNCLASSIFIED_COLOR }} />
-                <span className={styles.legendLabel}>{t('usage.tokens.unclassified')}</span>
-              </li>
-            )}
-          </ul>
+          {showLegend && (
+            <ul className={styles.legend}>
+              {MODEL_PARTS.map((part) => (
+                <li key={part} className={styles.legendItem}>
+                  <span className={styles.swatch} style={{ background: PART_COLORS[part] }} />
+                  <span className={styles.legendLabel}>{t(`usage.models.part.${part}`)}</span>
+                </li>
+              ))}
+              {hasUnclassified && (
+                <li className={styles.legendItem}>
+                  <span className={styles.swatch} style={{ background: UNCLASSIFIED_COLOR }} />
+                  <span className={styles.legendLabel}>{t('usage.tokens.unclassified')}</span>
+                </li>
+              )}
+            </ul>
+          )}
           <div className={styles.tableScroll}>
             <div className={styles.table} role="table" aria-label={t('usage.models.title')}>
               <div className={cls(styles.row, styles.rowHead, styles.modelsRow)} role="row">
@@ -220,12 +230,12 @@ export function ModelsPanel({ groups, truncated, initialView = 'cost' }: ModelsP
                   {t(view === 'tokens' ? 'usage.columns.requests' : 'usage.models.per_million')}
                 </span>
               </div>
-              {rows.map((row, index) => {
+              {rows.map((row) => {
                 const label = row.remainder
                   ? t('usage.breakdown.others', { count: row.folded })
                   : row.value || t('usage.unknown');
                 return renderRow(
-                  row.remainder ? 'remainder' : `${index}:${row.value}`,
+                  row.remainder ? 'remainder' : `model:${row.value}`,
                   label,
                   row.metrics,
                   row.share,

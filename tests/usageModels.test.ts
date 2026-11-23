@@ -146,6 +146,41 @@ describe('ModelsPanel rendering', () => {
     const markup = render([group('old', { totalTokens: 10, inputTokens: 10, costUsd: 3 })], 'cost');
     expect(markup).toContain('>$3.00<');
     expect(markup).not.toContain('>$0<');
+    expect(markup.match(/>-</g)?.length).toBe(4);
+    // No legend and a neutral bar: the cost must not read as all input.
+    expect(markup).not.toContain('<ul');
+    expect(markup).toContain('var(--usage-c-rest)');
+    expect(markup).not.toContain('var(--usage-input)');
+  });
+
+  test('still draws bars when nothing in the range is priced', () => {
+    const markup = render(
+      [
+        mystery,
+        group('other-mystery', { totalTokens: 500, inputTokens: 500, unpricedTokens: 500 }),
+      ],
+      'cost'
+    );
+    expect(markup).toContain(i18n.t('usage.columns.token_share'));
+    expect(markup).not.toContain('<ul');
+    expect(markup.split('var(--usage-c-rest)').length - 1).toBe(3);
+  });
+
+  test('a part paid only by unpriced models reads as a dash, not $0', () => {
+    const priced = group('priced', {
+      inputTokens: 1_000_000,
+      totalTokens: 1_000_000,
+      costUsd: 1,
+      inputCostUsd: 1,
+    });
+    const unpriced = group('unpriced', {
+      cacheWriteTokens: 1000,
+      totalTokens: 1000,
+      unpricedTokens: 1000,
+    });
+    const markup = render([priced, unpriced], 'cost');
+    expect(markup).not.toContain('>$0<');
+    expect(markup).toContain('>$1.00<');
   });
 
   test('a single model gets no all-models row', () => {
