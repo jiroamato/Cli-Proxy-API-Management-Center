@@ -6,6 +6,7 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ProviderArtwork } from '@/components/common/ProviderArtwork';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useNow } from '@/hooks/useNow';
@@ -151,11 +152,9 @@ function QuotaPoolPanel({
               : undefined
           }
         >
-          {iconSrc ? (
-            <img src={iconSrc} alt="" className={styles.icon} />
-          ) : (
+          <ProviderArtwork provider={provider} src={iconSrc} className={styles.icon}>
             <span className={styles.iconFallback}>{typeLabel.slice(0, 1).toUpperCase()}</span>
-          )}
+          </ProviderArtwork>
         </span>
         <span className={styles.name}>{typeLabel}</span>
         <span className={styles.count}>

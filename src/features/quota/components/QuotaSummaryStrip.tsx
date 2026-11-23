@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ProviderArtwork } from '@/components/common/ProviderArtwork';
 import type { ResolvedTheme } from '@/types';
 import { useNow } from '@/hooks/useNow';
 import {
@@ -104,11 +105,9 @@ function SummaryTile({
               : undefined
           }
         >
-          {iconSrc ? (
-            <img src={iconSrc} alt="" className={styles.icon} />
-          ) : (
+          <ProviderArtwork provider={summary.provider} src={iconSrc} className={styles.icon}>
             <span className={styles.iconFallback}>{typeLabel.slice(0, 1).toUpperCase()}</span>
-          )}
+          </ProviderArtwork>
         </span>
         <span className={styles.name}>{typeLabel}</span>
         <span className={styles.count}>
