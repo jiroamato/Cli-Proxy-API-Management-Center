@@ -1739,6 +1739,27 @@
       "models_note": "Model Satırları, Her Modelin O Hesabın API Eşdeğeri Maliyetindeki Payını Gösterir.",
       "footnote": "Plan Fiyatları, Bu Aralıkta Kaydedilen {{days}} Güne Orantılanır."
     },
+    "models": {
+      "title": "Modeller",
+      "hint_tokens": "Her Modelin Tüm Hesaplarınızda Kullandığı Tokenlar, Türe Göre.",
+      "hint_cost": "Her Modelin Tüm Hesaplarınızdaki API Eşdeğeri Maliyeti, Kaleme Göre.",
+      "view_label": "Model Ölçüsü",
+      "view_tokens": "Token",
+      "view_cost": "Maliyet",
+      "part": {
+        "input": "Girdi",
+        "cache_write": "Önbellek Yazma",
+        "cache_read": "Önbellek Okuma",
+        "output": "Çıktı"
+      },
+      "total_tokens": "Toplam",
+      "total_cost": "Toplam",
+      "per_million": "1M Token Başına",
+      "all": "Tüm Modeller",
+      "no_price": "Fiyat Yok",
+      "footnote_tokens": "Girdi Yalnızca Önbelleğe Alınmamış Girdiyi Sayar. Çıktı, Akıl Yürütme Tokenlarını İçerir.",
+      "footnote_cost": "API Liste Fiyatlarıyla Maliyet, Fatura Değil. Çıktı Akıl Yürütmeyi İçerir. 1M Token Başına, Modelin Maliyetini Fiyatlı Tokenlarına Böler."
+    },
     "breakdown": {
       "title": "Döküm",
       "empty": "Bu Görünüm için Kayıt Yok.",

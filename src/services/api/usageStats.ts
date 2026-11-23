@@ -34,6 +34,14 @@ export interface UsageMetrics {
   webSearchRequests: number;
   /** API-equivalent cost at list prices. */
   costUsd: number;
+  /**
+   * costUsd split by what it paid for; the four add up to it. Output covers
+   * reasoning too. All four are 0 from a backend that does not report the split.
+   */
+  inputCostUsd: number;
+  cacheReadCostUsd: number;
+  cacheWriteCostUsd: number;
+  outputCostUsd: number;
   /** Tokens the cost does not cover (unknown model price or unclassified tokens). */
   unpricedTokens: number;
 }
@@ -130,6 +138,10 @@ export const normalizeUsageMetrics = (raw: Record<string, unknown>): UsageMetric
   totalTokens: toNumber(raw.total_tokens),
   webSearchRequests: toNumber(raw.web_search_requests),
   costUsd: toNumber(raw.cost_usd),
+  inputCostUsd: toNumber(raw.input_cost_usd),
+  cacheReadCostUsd: toNumber(raw.cache_read_cost_usd),
+  cacheWriteCostUsd: toNumber(raw.cache_write_cost_usd),
+  outputCostUsd: toNumber(raw.output_cost_usd),
   unpricedTokens: toNumber(raw.unpriced_tokens),
 });
 

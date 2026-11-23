@@ -1739,6 +1739,27 @@
       "models_note": "모델 행은 해당 계정의 API 환산 비용에서 각 모델이 차지하는 비중을 보여 줍니다.",
       "footnote": "구독 가격은 이 기간에 기록된 {{days}}일에 맞춰 환산됩니다."
     },
+    "models": {
+      "title": "모델",
+      "hint_tokens": "모든 계정에서 각 모델이 사용한 토큰을 유형별로 나눠 보여줍니다.",
+      "hint_cost": "모든 계정에서 각 모델의 API 환산 비용을 항목별로 나눠 보여줍니다.",
+      "view_label": "모델 지표",
+      "view_tokens": "토큰",
+      "view_cost": "비용",
+      "part": {
+        "input": "입력",
+        "cache_write": "캐시 쓰기",
+        "cache_read": "캐시 읽기",
+        "output": "출력"
+      },
+      "total_tokens": "합계",
+      "total_cost": "합계",
+      "per_million": "100만 토큰당",
+      "all": "전체 모델",
+      "no_price": "가격 없음",
+      "footnote_tokens": "입력은 캐시되지 않은 입력만 셉니다. 출력에는 추론 토큰이 포함됩니다.",
+      "footnote_cost": "API 정가 기준 비용이며 청구액이 아닙니다. 출력에는 추론이 포함됩니다. 100만 토큰당은 모델 비용을 가격이 있는 토큰 수로 나눈 값입니다."
+    },
     "breakdown": {
       "title": "분류",
       "empty": "이 보기에 기록된 내용이 없습니다.",

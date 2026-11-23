@@ -22,6 +22,7 @@ import { useConfigStore, useNotificationStore } from '@/stores';
 import { formatCompactNumber, formatPercent } from '@/utils/format';
 import { LimitValuePanel } from './components/LimitValuePanel';
 import { ModelPricesModal } from './components/ModelPricesModal';
+import { ModelsPanel } from './components/ModelsPanel';
 import { TurnsPanel } from './components/TurnsPanel';
 import { UsageChart } from './components/UsageChart';
 import {
@@ -347,6 +348,8 @@ export function UsagePage() {
           )}
 
           <UsageChart series={view.series} bucket={data.range.bucket} topModels={view.topModels} />
+
+          <ModelsPanel groups={data.modelGroups} truncated={data.modelsTruncated} />
 
           <AccountValueTable
             rows={view.accounts}

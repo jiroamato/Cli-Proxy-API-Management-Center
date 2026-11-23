@@ -12,6 +12,7 @@ import {
   foldAccountModels,
   formatDurationMs,
   formatMultiple,
+  formatShare,
   formatUsd,
   formatUsdTick,
   listBucketKeys,
@@ -303,9 +304,17 @@ describe('buildBreakdownRows', () => {
 });
 
 describe('formatters', () => {
+  test('formatShare never rounds a nonzero share down to 0%', () => {
+    expect(formatShare(0)).toBe('0%');
+    expect(formatShare(0.03)).toBe('<0.1%');
+    expect(formatShare(0.05)).toBe('0.1%');
+    expect(formatShare(35.24)).toBe('35.2%');
+  });
+
   test('formatUsd scales precision with magnitude', () => {
     expect(formatUsd(0)).toBe('$0');
     expect(formatUsd(0.0042)).toBe('$0.0042');
+    expect(formatUsd(0.00003)).toBe('<$0.0001');
     expect(formatUsd(3.176)).toBe('$3.18');
     expect(formatUsd(1204.4)).toBe('$1,204');
     expect(formatUsd(12_400)).toBe('$12.4K');

@@ -32,6 +32,10 @@ export interface UsageDashboardData {
   seriesGroups: UsageGroup[];
   /** Groups by (provider, account, model). */
   accountGroups: UsageGroup[];
+  /** Groups by model, across every account. */
+  modelGroups: UsageGroup[];
+  /** True when the server left the smallest models out of `modelGroups`. */
+  modelsTruncated: boolean;
   /** Groups by status code. */
   statusGroups: UsageGroup[];
   speed: UsageSpeed[];
@@ -52,9 +56,10 @@ const baseQuery = (range: UsageRange): Omit<UsageStatsQuery, 'groupBy'> => ({
 async function loadDashboard(rangeId: UsageRangeId): Promise<UsageDashboardData> {
   const range = resolveRange(rangeId, new Date());
   const query = baseQuery(range);
-  const [series, accounts, statuses, speed, settings] = await Promise.all([
+  const [series, accounts, models, statuses, speed, settings] = await Promise.all([
     usageStatsApi.getStats({ ...query, groupBy: [range.bucket, 'model'] }),
     usageStatsApi.getStats({ ...query, groupBy: ['provider', 'account', 'model'] }),
+    usageStatsApi.getStats({ ...query, groupBy: ['model'], limit: BREAKDOWN_GROUP_LIMIT }),
     usageStatsApi.getStats({ ...query, groupBy: ['status_code'] }),
     usageStatsApi.getSpeed({ ...query, groupBy: ['model'] }),
     usageStatsApi.getSettings(),
@@ -63,6 +68,8 @@ async function loadDashboard(rangeId: UsageRangeId): Promise<UsageDashboardData>
     range,
     seriesGroups: series.groups,
     accountGroups: accounts.groups,
+    modelGroups: models.groups,
+    modelsTruncated: models.truncated,
     statusGroups: statuses.groups,
     speed,
     unpricedModels: series.unpricedModels,

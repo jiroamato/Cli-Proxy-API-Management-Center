@@ -1758,6 +1758,27 @@
       "models_note": "模型列顯示各模型在此帳號 API 等價費用中的占比。",
       "footnote": "訂閱價格依此範圍內已記錄的 {{days}} 天折算。"
     },
+    "models": {
+      "title": "模型",
+      "hint_tokens": "所有帳號中每個模型使用的 Token，依類型拆分。",
+      "hint_cost": "所有帳號中每個模型依 API 標價折算的費用，依用途拆分。",
+      "view_label": "模型指標",
+      "view_tokens": "Token",
+      "view_cost": "費用",
+      "part": {
+        "input": "輸入",
+        "cache_write": "快取寫入",
+        "cache_read": "快取讀取",
+        "output": "輸出"
+      },
+      "total_tokens": "合計",
+      "total_cost": "合計",
+      "per_million": "每百萬 Token",
+      "all": "全部模型",
+      "no_price": "無價格",
+      "footnote_tokens": "輸入僅計算未命中快取的輸入。輸出包含推理 Token。",
+      "footnote_cost": "依 API 標價估算，並非帳單。輸出包含推理。每百萬 Token 為模型費用除以有價格的 Token 數。"
+    },
     "breakdown": {
       "title": "明細",
       "empty": "此檢視尚無記錄。",

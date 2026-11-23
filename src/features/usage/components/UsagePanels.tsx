@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { IconChevronDown } from '@/components/ui/icons';
 import type { UsageGroup, UsageSpeed } from '@/services/api/usageStats';
 import { providerLabel } from '@/features/dashboard/utils';
-import { formatCompactNumber, formatPercent } from '@/utils/format';
+import { formatCompactNumber } from '@/utils/format';
 import { BREAKDOWN_GROUP_LIMIT, useUsageBreakdown } from '../hooks/useUsageDashboard';
 import {
   BREAKDOWN_DIMENSIONS,
@@ -13,6 +13,7 @@ import {
   foldAccountModels,
   formatDurationMs,
   formatMultiple,
+  formatShare,
   formatUsd,
   sumMetrics,
   type AccountRow,
@@ -216,7 +217,7 @@ export function AccountValueTable(props: AccountValueTableProps) {
                     const label = isRemainder
                       ? t('usage.accounts.other_models', { count: models.folded })
                       : model.model || t('usage.unknown');
-                    const share = formatPercent(model.share);
+                    const share = formatShare(model.share);
                     return (
                       <div
                         key={isRemainder ? 'remainder' : model.model}
@@ -362,7 +363,7 @@ export function BreakdownPanel({ range }: BreakdownPanelProps) {
                       <span className={styles.trackFill} style={{ width: `${row.share}%` }} />
                     </span>
                     <span className={cls(styles.num, styles.numMuted, styles.sharePercent)}>
-                      {formatPercent(row.share)}
+                      {formatShare(row.share)}
                     </span>
                   </span>
                   <span role="cell" className={styles.num}>
@@ -509,7 +510,7 @@ export function StatusPanel({ groups }: StatusPanelProps) {
                 {group.requests.toLocaleString(i18n.language)}
               </span>
               <span role="cell" className={cls(styles.num, styles.numMuted)}>
-                {formatPercent(total > 0 ? (group.requests / total) * 100 : 0)}
+                {formatShare(total > 0 ? (group.requests / total) * 100 : 0)}
               </span>
             </div>
           );
