@@ -304,6 +304,18 @@ describe('buildLedgerCredential', () => {
     expect(ledger?.extras[0]).toMatchObject({ value: '120', valueSuffix: '/ 300' });
     expect(buildLedgerCredential('copilot', { status: 'success' }, t)).toBeNull();
   });
+
+  test('Copilot: fractional and large request counts are rounded and grouped', () => {
+    const quota: CopilotQuotaState = {
+      status: 'success',
+      data: { remaining: 1150.94, entitlement: 20000, percentRemaining: 5.75 },
+    };
+    const format = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 });
+    expect(buildLedgerCredential('copilot', quota, t)?.extras[0]).toMatchObject({
+      value: format.format(1150.9),
+      valueSuffix: `/ ${format.format(20000)}`,
+    });
+  });
 });
 
 describe('describeLedgerReset', () => {

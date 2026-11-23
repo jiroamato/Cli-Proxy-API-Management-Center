@@ -416,6 +416,10 @@ const buildPlugin = (quota: PluginQuotaState): LedgerCredential => ({
   ),
 });
 
+/** Premium-request counts can be fractional; keep one decimal and group thousands. */
+const formatRequestCount = (value: number): string =>
+  new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
+
 const buildCopilot = (quota: CopilotQuotaState, t: TFunction): LedgerCredential | null => {
   const data = quota.data;
   if (!data) return null;
@@ -428,8 +432,8 @@ const buildCopilot = (quota: CopilotQuotaState, t: TFunction): LedgerCredential 
       {
         id: 'copilot:premium-requests',
         title: t('copilot_quota.premium'),
-        value: String(data.remaining),
-        valueSuffix: `/ ${data.entitlement}`,
+        value: formatRequestCount(data.remaining),
+        valueSuffix: `/ ${formatRequestCount(data.entitlement)}`,
         lines: [],
       },
     ],
@@ -557,8 +561,11 @@ export function buildLedgerCredential(
       return buildMeta(quota as MetaQuotaState, t);
     case 'plugin':
       return buildPlugin(quota as PluginQuotaState);
-    default:
-      return null;
+    default: {
+      // A new provider type must get a ledger builder, not silently render as unloaded.
+      const unhandled: never = type;
+      return unhandled;
+    }
   }
 }
 
