@@ -1730,6 +1730,27 @@
       "models_note": "模型行显示各模型在该账号 API 等价费用中的占比。",
       "footnote": "订阅价格按该范围内已记录的 {{days}} 天折算。"
     },
+    "models": {
+      "title": "模型",
+      "hint_tokens": "所有账号中每个模型使用的 Token，按类型拆分。",
+      "hint_cost": "所有账号中每个模型按 API 标价折算的费用，按用途拆分。",
+      "view_label": "模型指标",
+      "view_tokens": "Token",
+      "view_cost": "费用",
+      "part": {
+        "input": "输入",
+        "cache_write": "缓存写入",
+        "cache_read": "缓存读取",
+        "output": "输出"
+      },
+      "total_tokens": "合计",
+      "total_cost": "合计",
+      "per_million": "每百万 Token",
+      "all": "全部模型",
+      "no_price": "无价格",
+      "footnote_tokens": "输入仅统计未命中缓存的输入。输出包含推理 Token。",
+      "footnote_cost": "按 API 标价估算，并非账单。输出包含推理。每百万 Token 为模型费用除以有价格的 Token 数。"
+    },
     "breakdown": {
       "title": "明细",
       "empty": "该视图暂无记录。",

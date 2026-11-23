@@ -1739,6 +1739,27 @@
       "models_note": "Model rows show each model's share of that account's API-equivalent cost.",
       "footnote": "Plan prices are prorated over the {{days}} days recorded in this range."
     },
+    "models": {
+      "title": "Models",
+      "hint_tokens": "Tokens each model used across all your accounts, split by type.",
+      "hint_cost": "API-equivalent cost of each model across all your accounts, split by what it paid for.",
+      "view_label": "Models metric",
+      "view_tokens": "Tokens",
+      "view_cost": "Cost",
+      "part": {
+        "input": "Input",
+        "cache_write": "Cache write",
+        "cache_read": "Cache read",
+        "output": "Output"
+      },
+      "total_tokens": "Total",
+      "total_cost": "Total",
+      "per_million": "Per 1M tokens",
+      "all": "All models",
+      "no_price": "No price",
+      "footnote_tokens": "Input counts uncached input only. Output includes reasoning tokens.",
+      "footnote_cost": "Cost at API list prices, not a bill. Output includes reasoning. Per 1M tokens divides a model's cost by its priced tokens."
+    },
     "breakdown": {
       "title": "Breakdown",
       "empty": "Nothing recorded for this view.",

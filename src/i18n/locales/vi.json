@@ -1695,6 +1695,27 @@
       "models_note": "Các dòng model cho biết tỷ trọng của từng model trong chi phí theo giá API của tài khoản.",
       "footnote": "Giá gói được chia theo {{days}} ngày đã ghi nhận trong khoảng này."
     },
+    "models": {
+      "title": "Model",
+      "hint_tokens": "Token mỗi model đã dùng trên tất cả tài khoản, chia theo loại.",
+      "hint_cost": "Chi phí quy đổi theo giá API của mỗi model trên tất cả tài khoản, chia theo hạng mục.",
+      "view_label": "Chỉ số model",
+      "view_tokens": "Token",
+      "view_cost": "Chi phí",
+      "part": {
+        "input": "Đầu vào",
+        "cache_write": "Ghi cache",
+        "cache_read": "Đọc cache",
+        "output": "Đầu ra"
+      },
+      "total_tokens": "Tổng",
+      "total_cost": "Tổng",
+      "per_million": "Mỗi 1M token",
+      "all": "Tất cả model",
+      "no_price": "Chưa có giá",
+      "footnote_tokens": "Đầu vào chỉ tính phần không dùng cache. Đầu ra gồm cả token suy luận.",
+      "footnote_cost": "Chi phí theo giá niêm yết API, không phải hóa đơn. Đầu ra gồm cả suy luận. Mỗi 1M token là chi phí của model chia cho số token có giá."
+    },
     "breakdown": {
       "title": "Phân tích",
       "empty": "Chưa có dữ liệu cho chế độ xem này.",

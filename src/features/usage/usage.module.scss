@@ -618,6 +618,18 @@
   min-width: 560px;
 }
 
+.modelsRow {
+  grid-template-columns: minmax(150px, 1.8fr) minmax(120px, 1.6fr) repeat(6, minmax(68px, 0.75fr));
+  min-width: 820px;
+}
+
+/* The all-models sum closes the table under a stronger rule. */
+.rowTotal {
+  border-top-color: var(--border-hover, var(--border-color));
+  border-top-width: 2px;
+  font-weight: 600;
+}
+
 .speedRow {
   grid-template-columns: minmax(150px, 2fr) repeat(4, minmax(78px, 1fr));
   min-width: 560px;
@@ -635,6 +647,10 @@
 
 .numMuted {
   color: var(--text-tertiary);
+}
+
+.numStrong {
+  font-weight: 600;
 }
 
 /* Fixed width so the share bars beside it all end at the same x. */
@@ -750,6 +766,21 @@
   border-radius: $radius-full;
   background: var(--usage-c1);
   transition: width 360ms var(--ease-out-strong, ease);
+}
+
+.mixFill {
+  display: flex;
+  height: 100%;
+  gap: 1px;
+  border-radius: $radius-full;
+  overflow: hidden;
+  transition: width 360ms var(--ease-out-strong, ease);
+}
+
+.mixPart {
+  flex: 1 1 0;
+  min-width: 2px;
+  background: var(--usage-c1);
 }
 
 .trackFillValue {

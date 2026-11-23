@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { formatCompactNumber, formatPercent } from '@/utils/format';
+import { formatCompactNumber } from '@/utils/format';
 import { useTurns } from '../hooks/useUsageDashboard';
-import { EMPTY_VALUE, formatUsd, type UsageRange } from '../logic';
+import { EMPTY_VALUE, formatShare, formatUsd, type UsageRange } from '../logic';
 import type { MonthTurns, TurnFigures } from '../turns';
 import styles from '../usage.module.scss';
 
@@ -15,9 +15,6 @@ const cls = (...names: (string | false | undefined)[]): string => names.filter(B
 /** A ratio with one decimal below 10, written like the page's other figures: 3.4, 14, 1,250. */
 const formatRatio = (value: number): string =>
   value.toLocaleString('en-US', { maximumFractionDigits: value < 10 ? 1 : 0 });
-
-const formatShare = (value: number): string =>
-  value > 0 && value < 0.05 ? '<0.1%' : formatPercent(value);
 
 const usdOrNoData = (value: number | null, t: TFunction): ReactNode =>
   value === null ? (

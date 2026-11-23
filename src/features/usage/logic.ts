@@ -4,6 +4,7 @@
  */
 
 import type { AccountPlan, UsageGroup, UsageMetrics } from '@/services/api/usageStats';
+import { formatPercent } from '@/utils/format';
 
 export const USAGE_RANGE_IDS = ['today', '7d', '30d', 'month', '90d'] as const;
 export type UsageRangeId = (typeof USAGE_RANGE_IDS)[number];
@@ -105,6 +106,10 @@ export const emptyMetrics = (): UsageMetrics => ({
   totalTokens: 0,
   webSearchRequests: 0,
   costUsd: 0,
+  inputCostUsd: 0,
+  cacheReadCostUsd: 0,
+  cacheWriteCostUsd: 0,
+  outputCostUsd: 0,
   unpricedTokens: 0,
 });
 
@@ -371,10 +376,11 @@ export interface Breakdown {
 export function buildBreakdownRows(
   groups: readonly UsageGroup[],
   dimension: string,
-  limit: number
+  limit: number,
+  basisOverride?: ShareBasis
 ): Breakdown {
   const totals = sumMetrics(groups);
-  const basis = shareBasisOf(totals);
+  const basis = basisOverride ?? shareBasisOf(totals);
   const total = basisValue(totals, basis);
   const share = (metrics: UsageMetrics): number =>
     total > 0 ? (basisValue(metrics, basis) / total) * 100 : 0;
@@ -407,6 +413,72 @@ export function buildBreakdownRows(
   return { rows, basis };
 }
 
+/* ---------- per-model split ---------- */
+
+/** What the Models panel measures: token volume or API-equivalent cost. */
+export type ModelView = 'tokens' | 'cost';
+
+/** The parts tokens and cost split into, in chart order. Output includes reasoning. */
+export const MODEL_PARTS = ['input', 'cache_write', 'cache_read', 'output'] as const;
+export type ModelPart = (typeof MODEL_PARTS)[number];
+
+export function partTokens(metrics: UsageMetrics, part: ModelPart): number {
+  switch (part) {
+    case 'input':
+      return metrics.inputTokens;
+    case 'cache_write':
+      return metrics.cacheWriteTokens;
+    case 'cache_read':
+      return metrics.cacheReadTokens;
+    case 'output':
+      return metrics.outputTokens + metrics.reasoningTokens;
+  }
+}
+
+export function partCost(metrics: UsageMetrics, part: ModelPart): number {
+  switch (part) {
+    case 'input':
+      return metrics.inputCostUsd;
+    case 'cache_write':
+      return metrics.cacheWriteCostUsd;
+    case 'cache_read':
+      return metrics.cacheReadCostUsd;
+    case 'output':
+      return metrics.outputCostUsd;
+  }
+}
+
+export const partValue = (metrics: UsageMetrics, part: ModelPart, view: ModelView): number =>
+  view === 'tokens' ? partTokens(metrics, part) : partCost(metrics, part);
+
+/**
+ * Whether the cost is split by part. A backend that predates the split
+ * reports only the total, which leaves every part at 0.
+ */
+export const hasCostSplit = (metrics: UsageMetrics): boolean =>
+  metrics.costUsd === 0 || MODEL_PARTS.some((part) => partCost(metrics, part) > 0);
+
+/** Usage that has tokens but no cost because its model has no price. */
+export const isUnpriced = (metrics: UsageMetrics): boolean =>
+  metrics.costUsd === 0 && metrics.unpricedTokens > 0;
+
+/** API-equivalent cost per million priced tokens; null when nothing was priced. */
+export function costPerMillion(metrics: UsageMetrics): number | null {
+  const priced = metrics.totalTokens - metrics.unpricedTokens;
+  return priced > 0 && metrics.costUsd > 0 ? (metrics.costUsd / priced) * 1_000_000 : null;
+}
+
+/**
+ * Model rows for one view, folded past `limit`. The tokens view ranks and
+ * shares by tokens; the cost view by cost, or by tokens when nothing is priced.
+ */
+export const buildModelRows = (
+  groups: readonly UsageGroup[],
+  view: ModelView,
+  limit: number
+): Breakdown =>
+  buildBreakdownRows(groups, 'model', limit, view === 'tokens' ? 'tokens' : undefined);
+
 const AXIS_STEPS = [1, 2, 2.5, 4, 5, 8, 10] as const;
 
 /**
@@ -432,12 +504,18 @@ export function formatUsd(value: number): string {
   const sign = value < 0 ? '-' : '';
   const abs = Math.abs(value);
   if (abs === 0) return '$0';
+  // Four decimals would print a real cost as $0.0000.
+  if (value > 0 && value < 0.0001) return '<$0.0001';
   if (abs < 0.01) return `${sign}$${abs.toFixed(4)}`;
   if (abs < 1000) return `${sign}$${abs.toFixed(2)}`;
   if (abs < 10_000) return `${sign}$${Math.round(abs).toLocaleString('en-US')}`;
   if (abs < 1_000_000) return `${sign}$${Number((abs / 1000).toFixed(1))}K`;
   return `${sign}$${Number((abs / 1_000_000).toFixed(2))}M`;
 }
+
+/** A share of 0..100 with one decimal; a nonzero share never reads as 0%. */
+export const formatShare = (value: number): string =>
+  value > 0 && value < 0.05 ? '<0.1%' : formatPercent(value);
 
 /** Value multiple: ×0.4, ×3.2, ×18. */
 export function formatMultiple(value: number): string {
