@@ -3,6 +3,7 @@ import type { TFunction } from 'i18next';
 import type {
   ClaudeQuotaState,
   CodexQuotaState,
+  CopilotQuotaState,
   KimiQuotaState,
   PluginQuotaState,
   XaiQuotaState,
@@ -283,6 +284,37 @@ describe('buildLedgerCredential', () => {
       rows: [{ id: 'weekly', labelKey: 'kimi_quota.weekly_limit', used: 25, limit: 100 }],
     };
     expect(buildLedgerCredential('kimi', quota, t)?.metrics[0].remainingPercent).toBe(75);
+  });
+  test('Copilot: premium requests become one window plus a remaining/entitlement block', () => {
+    const quota: CopilotQuotaState = {
+      status: 'success',
+      data: { remaining: 120, entitlement: 300, percentRemaining: 40 },
+    };
+    const ledger = buildLedgerCredential('copilot', quota, t);
+    expect(ledger?.metrics).toEqual([
+      {
+        id: 'premium',
+        label: 'copilot_quota.premium',
+        remainingPercent: 40,
+        resetAtMs: null,
+        resetLabel: null,
+        periodHours: null,
+      },
+    ]);
+    expect(ledger?.extras[0]).toMatchObject({ value: '120', valueSuffix: '/ 300' });
+    expect(buildLedgerCredential('copilot', { status: 'success' }, t)).toBeNull();
+  });
+
+  test('Copilot: fractional and large request counts are rounded and grouped', () => {
+    const quota: CopilotQuotaState = {
+      status: 'success',
+      data: { remaining: 1150.94, entitlement: 20000, percentRemaining: 5.75 },
+    };
+    const format = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 });
+    expect(buildLedgerCredential('copilot', quota, t)?.extras[0]).toMatchObject({
+      value: format.format(1150.9),
+      valueSuffix: `/ ${format.format(20000)}`,
+    });
   });
 });
 

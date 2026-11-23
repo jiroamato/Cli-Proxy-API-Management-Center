@@ -13,6 +13,7 @@ import type {
   AntigravityQuotaState,
   ClaudeQuotaState,
   CodexQuotaState,
+  CopilotQuotaState,
   DevinQuotaState,
   KimiQuotaState,
   MetaQuotaState,
@@ -415,6 +416,40 @@ const buildPlugin = (quota: PluginQuotaState): LedgerCredential => ({
   ),
 });
 
+/** Premium-request counts can be fractional; keep one decimal and group thousands. */
+const formatRequestCount = (value: number): string =>
+  new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
+
+const buildCopilot = (quota: CopilotQuotaState, t: TFunction): LedgerCredential | null => {
+  const data = quota.data;
+  if (!data) return null;
+  return {
+    plan: null,
+    planTier: 'standard',
+    renewsAtMs: null,
+    message: null,
+    extras: [
+      {
+        id: 'copilot:premium-requests',
+        title: t('copilot_quota.premium'),
+        value: formatRequestCount(data.remaining),
+        valueSuffix: `/ ${formatRequestCount(data.entitlement)}`,
+        lines: [],
+      },
+    ],
+    metrics: [
+      {
+        id: 'premium',
+        label: t('copilot_quota.premium'),
+        remainingPercent: clampPercent(data.percentRemaining),
+        resetAtMs: null,
+        resetLabel: null,
+        periodHours: null,
+      },
+    ],
+  };
+};
+
 const buildDevin = (quota: DevinQuotaState, t: TFunction): LedgerCredential => ({
   plan: quota.plan ?? null,
   planTier: 'standard',
@@ -491,6 +526,7 @@ export function withRecordedMetrics(
 export const LEDGER_EMPTY_MESSAGE_KEYS: Record<QuotaProviderType, string> = {
   claude: 'claude_quota.empty_windows',
   codex: 'codex_quota.empty_windows',
+  copilot: 'copilot_quota.unavailable',
   xai: 'xai_quota.empty_data',
   kimi: 'kimi_quota.empty_data',
   antigravity: 'antigravity_quota.empty_models',
@@ -517,14 +553,19 @@ export function buildLedgerCredential(
       return buildKimi(quota as KimiQuotaState, t);
     case 'antigravity':
       return buildAntigravity(quota as AntigravityQuotaState, t);
+    case 'copilot':
+      return buildCopilot(quota as CopilotQuotaState, t);
     case 'devin':
       return buildDevin(quota as DevinQuotaState, t);
     case 'meta':
       return buildMeta(quota as MetaQuotaState, t);
     case 'plugin':
       return buildPlugin(quota as PluginQuotaState);
-    default:
-      return null;
+    default: {
+      // A new provider type must get a ledger builder, not silently render as unloaded.
+      const unhandled: never = type;
+      return unhandled;
+    }
   }
 }
 
