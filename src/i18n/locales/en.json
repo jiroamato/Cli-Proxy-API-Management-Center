@@ -129,7 +129,7 @@
     "auth_files": "Auth files & credentials",
     "oauth": "OAuth authorization",
     "routing": "Priority tiers and failover",
-    "quota_management": "API keys & limits",
+    "quota_management": "OAuth credential quotas",
     "usage": "Tokens, cost & value",
     "plugins": "Install, update & configure",
     "logs": "Request tracing",

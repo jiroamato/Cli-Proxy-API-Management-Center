@@ -129,7 +129,7 @@
     "auth_files": "Kimlik Dosyaları ve Kimlik Bilgileri",
     "oauth": "OAuth Yetkilendirmesi",
     "routing": "Öncelik katmanları ve yük devretme",
-    "quota_management": "API Anahtarları ve Sınırlar",
+    "quota_management": "OAuth Kimlik Bilgisi Kotaları",
     "usage": "Token, Maliyet ve Değer",
     "plugins": "Kurulum, güncelleme ve yapılandırma",
     "logs": "İstek İzleme",

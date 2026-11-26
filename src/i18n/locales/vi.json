@@ -129,7 +129,7 @@
     "auth_files": "File xác thực & credential",
     "oauth": "Ủy quyền OAuth",
     "routing": "Tầng ưu tiên và chuyển đổi dự phòng",
-    "quota_management": "API key & giới hạn",
+    "quota_management": "Quota credential OAuth",
     "usage": "Token, chi phí & giá trị",
     "plugins": "Cài đặt, cập nhật & cấu hình",
     "logs": "Truy vết yêu cầu",

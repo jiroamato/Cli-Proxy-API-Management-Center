@@ -129,7 +129,7 @@
     "auth_files": "Auth 檔案與憑證",
     "oauth": "OAuth 授權登入",
     "routing": "優先級分層與故障轉移",
-    "quota_management": "API Key 與限額",
+    "quota_management": "OAuth 憑證配額",
     "usage": "Token、費用與價值",
     "plugins": "安裝、更新與設定",
     "logs": "請求追蹤與排查",

@@ -129,7 +129,7 @@
     "auth_files": "인증 파일 및 자격 증명",
     "oauth": "OAuth 권한 부여",
     "routing": "우선순위 계층과 장애 조치",
-    "quota_management": "API 키 및 한도",
+    "quota_management": "OAuth 자격 증명 할당량",
     "usage": "토큰, 비용 및 가치",
     "plugins": "설치, 업데이트 및 설정",
     "logs": "요청 추적",
