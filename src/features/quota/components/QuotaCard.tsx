@@ -1,3 +1,4 @@
+import { QuotaErrorMessage } from '@/features/quota/components/QuotaErrorMessage';
 import { ProviderArtwork } from '@/components/common/ProviderArtwork';
 /**
  * Provider quota card: identity, loading/error state, quota body, and actions.
@@ -178,9 +179,9 @@ export function QuotaCard(props: QuotaCardProps) {
               </div>
             ))}
           </div>
-        ) : status === 'error' ? (
+        ) : status === 'error' && quota ? (
           <div className={styles.errorStrip} role="alert">
-            {t(`${adapter.i18nPrefix}.load_failed`, { message: errorMessage })}
+            <QuotaErrorMessage quota={quota} i18nPrefix={adapter.i18nPrefix} />
           </div>
         ) : quota && !retainedClaudeUsage ? (
           <adapter.Body
