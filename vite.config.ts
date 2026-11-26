@@ -12,14 +12,20 @@ function getVersion(): string {
     return process.env.VERSION;
   }
 
-  // 2. Try git tag
-  try {
-    const gitTag = execSync('git describe --tags --exact-match 2>/dev/null || git describe --tags 2>/dev/null || echo ""', { encoding: 'utf8' }).trim();
-    if (gitTag) {
-      return gitTag;
+  // 2. Try git tag: exact tag first, then the nearest one. stderr is discarded through stdio
+  // rather than a shell redirect, which cmd.exe on Windows cannot run.
+  for (const command of ['git describe --tags --exact-match', 'git describe --tags']) {
+    try {
+      const gitTag = execSync(command, {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim();
+      if (gitTag) {
+        return gitTag;
+      }
+    } catch {
+      // Git not available, or no matching tag
     }
-  } catch {
-    // Git not available or no tags
   }
 
   // 3. Fall back to package.json version
