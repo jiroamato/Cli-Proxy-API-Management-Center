@@ -316,6 +316,17 @@ describe('buildLedgerCredential', () => {
       valueSuffix: `/ ${format.format(20000)}`,
     });
   });
+
+  test('Copilot: percentage-only quotas keep the window and drop the request block', () => {
+    for (const data of [
+      { remaining: null, entitlement: null, percentRemaining: 62.5 },
+      { remaining: 0, entitlement: 0, percentRemaining: 100 },
+    ]) {
+      const ledger = buildLedgerCredential('copilot', { status: 'success', data }, t);
+      expect(ledger?.metrics[0].remainingPercent).toBe(data.percentRemaining);
+      expect(ledger?.extras).toEqual([]);
+    }
+  });
 });
 
 describe('describeLedgerReset', () => {

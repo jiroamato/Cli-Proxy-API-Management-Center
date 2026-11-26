@@ -82,7 +82,7 @@ export function QuotaCard(props: QuotaCardProps) {
       : ({ '--card-delay': `${mountEntranceDelayMs}ms` } as CSSProperties);
 
   const actions = useQuotaEntryActions(entry, quota, canRefresh, resetting, onRefresh);
-  const { adapter, status, loading, claudeReset, errorMessage } = actions;
+  const { adapter, status, loading, claudeReset } = actions;
   const providerType = getQuotaProviderKey(entry);
   const iconSrc = getAuthFileIcon(providerType, resolvedTheme);
   const typeLabel = getTypeLabel(t, providerType);
