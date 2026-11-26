@@ -7,9 +7,9 @@
  * into a failing test.
  *
  * The check is textual rather than a module import on purpose: under `bun test`
- * a `.module.scss` import resolves to the raw stylesheet source (a string), not
- * to the class-name object Vite produces for the browser build. Asserting on
- * keys of that object would silently pass for every key.
+ * the `tests/setup/cssModules.ts` preload loads every `.module.scss` import as an
+ * empty map, not the class-name object Vite produces for the browser build, so
+ * the stylesheet's real classes are only visible in its source text.
  */
 
 import { describe, expect, test } from 'bun:test';
