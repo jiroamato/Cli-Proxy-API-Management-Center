@@ -6,8 +6,6 @@
  * and the hosts only decide where the buttons go.
  */
 
-import { useTranslation } from 'react-i18next';
-import { resolveQuotaErrorMessage } from '@/utils/quota';
 import { QUOTA_ADAPTERS, type QuotaAdapter, type QuotaCardState } from '../providers';
 import { isQuotaRefreshDisabled, type QuotaFileEntry } from '../logic';
 import { useClaudeResetGrants } from '../providers/claude/ClaudeResetGrants';
@@ -18,7 +16,6 @@ export interface QuotaEntryActionState {
   loading: boolean;
   claudeReset: ReturnType<typeof useClaudeResetGrants>;
   showReset: boolean;
-  errorMessage: string;
   refreshDisabled: boolean;
 }
 
@@ -29,7 +26,6 @@ export function useQuotaEntryActions(
   resetting: boolean,
   onRefresh: () => void
 ): QuotaEntryActionState {
-  const { t } = useTranslation();
   const adapter = QUOTA_ADAPTERS[entry.type];
   const status = quota?.status ?? 'idle';
   const loading = status === 'loading';
@@ -45,16 +41,11 @@ export function useQuotaEntryActions(
     Boolean(adapter.resetQuota) &&
     quota !== undefined &&
     Boolean(adapter.canResetQuota?.(quota));
-  const errorMessage = resolveQuotaErrorMessage(
-    t,
-    quota?.errorStatus,
-    quota?.error || t('common.unknown_error')
-  );
   const refreshDisabled = isQuotaRefreshDisabled(
     canRefresh,
     loading,
     resetting || claudeReset.busy
   );
 
-  return { adapter, status, loading, claudeReset, showReset, errorMessage, refreshDisabled };
+  return { adapter, status, loading, claudeReset, showReset, refreshDisabled };
 }

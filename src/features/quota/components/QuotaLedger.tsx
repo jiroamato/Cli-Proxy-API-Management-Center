@@ -24,6 +24,7 @@ import {
 } from '../ledger/model';
 import { useQuotaEntryActions } from '../hooks/useQuotaEntryActions';
 import { QuotaEntryActions, QuotaEntryDialogs } from './QuotaEntryActions';
+import { QuotaErrorMessage } from './QuotaErrorMessage';
 import { QUOTA_PROGRESS_HIGH_THRESHOLD, QUOTA_PROGRESS_MEDIUM_THRESHOLD } from './QuotaMeter';
 import styles from './QuotaLedger.module.scss';
 
@@ -162,7 +163,7 @@ function QuotaLedgerRow(props: RowProps) {
   const { t } = useTranslation();
   const nowMs = useNow();
   const actions = useQuotaEntryActions(entry, quota, canRefresh, resetting, onRefresh);
-  const { adapter, status, loading, errorMessage, claudeReset } = actions;
+  const { adapter, status, loading, claudeReset } = actions;
   const planLabel = credential?.plan ?? getTypeLabel(t, entry.type);
   const planClass =
     credential?.planTier === 'elite'
@@ -221,9 +222,9 @@ function QuotaLedgerRow(props: RowProps) {
               </div>
             ))}
           </div>
-        ) : status === 'error' ? (
+        ) : status === 'error' && quota ? (
           <div className={styles.errorStrip} role="alert">
-            {t(`${adapter.i18nPrefix}.load_failed`, { message: errorMessage })}
+            <QuotaErrorMessage quota={quota} i18nPrefix={adapter.i18nPrefix} />
           </div>
         ) : credential ? (
           <>

@@ -428,15 +428,19 @@ const buildCopilot = (quota: CopilotQuotaState, t: TFunction): LedgerCredential 
     planTier: 'standard',
     renewsAtMs: null,
     message: null,
-    extras: [
-      {
-        id: 'copilot:premium-requests',
-        title: t('copilot_quota.premium'),
-        value: formatRequestCount(data.remaining),
-        valueSuffix: `/ ${formatRequestCount(data.entitlement)}`,
-        lines: [],
-      },
-    ],
+    // Percentage-only quotas carry no request counts; the metric alone covers them.
+    extras:
+      data.remaining !== null && data.entitlement !== null && data.entitlement > 0
+        ? [
+            {
+              id: 'copilot:premium-requests',
+              title: t('copilot_quota.premium'),
+              value: formatRequestCount(data.remaining),
+              valueSuffix: `/ ${formatRequestCount(data.entitlement)}`,
+              lines: [],
+            },
+          ]
+        : [],
     metrics: [
       {
         id: 'premium',
